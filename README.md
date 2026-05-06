@@ -37,13 +37,13 @@ El proyecto se desarrollara usando Django para el backend. La base de datos, el 
 
 ## Configuracion Local
 
-Para configurar variables de entorno, copia el archivo `.env.example` y crea un archivo `.env` en la raiz del proyecto:
+Para usar MySQL, copia `.env.example` como `.env` y completa los datos de conexion:
 
 ```bash
 cp .env.example .env
 ```
 
-Formato esperado:
+Variables esperadas:
 
 ```env
 DB_CONNECTION=mysql
@@ -52,10 +52,9 @@ DB_PORT=3306
 DB_DATABASE=database_name
 DB_USERNAME=database_user
 DB_PASSWORD=database_password
-DATABASE_URL=mysql://database_user:database_password@127.0.0.1:3306/database_name
 ```
 
-El archivo `.env` contiene credenciales locales y no debe subirse al repositorio.
+Si no existe `.env`, Django usa SQLite localmente y crea `db.sqlite3` al ejecutar las migraciones. El archivo `.env` contiene credenciales locales y no debe subirse al repositorio.
 
 ## Estado Del Proyecto
 
