@@ -35,6 +35,28 @@ Este proyecto nace como una aplicacion web para organizar apuestas ficticias den
 
 El proyecto se desarrollara usando Django para el backend. La base de datos, el frontend y otras herramientas se iran definiendo durante el desarrollo del proyecto.
 
+## Configuracion Local
+
+Para configurar variables de entorno, copia el archivo `.env.example` y crea un archivo `.env` en la raiz del proyecto:
+
+```bash
+cp .env.example .env
+```
+
+Formato esperado:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=database_name
+DB_USERNAME=database_user
+DB_PASSWORD=database_password
+DATABASE_URL=mysql://database_user:database_password@127.0.0.1:3306/database_name
+```
+
+El archivo `.env` contiene credenciales locales y no debe subirse al repositorio.
+
 ## Estado Del Proyecto
 
 Proyecto en etapa inicial de configuracion y definicion de funcionalidades.
