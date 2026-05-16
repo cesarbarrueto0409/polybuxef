@@ -34,9 +34,13 @@ class Perfil(models.Model):
 
 class Transaction(models.Model):
     """
-    Registro de transacciones del sistema.
+    Registro de transacciones del sistema (ledger).
 
-    Representa movimientos de dinero del usuario:
+    Representa movimientos de dinero asociados a un usuario,
+    permitiendo mantener historial financiero y trazabilidad
+    de operaciones dentro de la plataforma.
+
+    Tipos de movimiento:
     - IN: ingreso de dinero
     - OUT: salida de dinero
     """
@@ -52,7 +56,21 @@ class Transaction(models.Model):
         related_name="transactions"
     )
 
-    tipo = models.CharField(max_length=3, choices=TIPO_CHOICES)
-    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    tipo = models.CharField(
+        max_length=3,
+        choices=TIPO_CHOICES
+    )
+    
+    monto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    descripcion = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )

@@ -27,35 +27,43 @@ class Wallet:
         """
         return self.perfil.obtener_saldo()
 
-    def registrar_transaccion(self, tipo: str, monto: Decimal) -> None:
+    def registrar_transaccion(self, tipo: str, monto: Decimal, descripcion: str = "") -> None:
         """
         Registra una transacción en el sistema.
 
         Args:
             tipo (str): tipo de transacción ('IN' o 'OUT')
             monto (Decimal): monto de la transacción
+            descripcion (str): descripción del movimiento
         """
         Transaction.objects.create(
             perfil=self.perfil,
             tipo=tipo,
-            monto=monto
+            monto=monto,
+            descripcion=descripcion
         )
 
-    def agregar_saldo(self, monto: Decimal) -> None:
+    def agregar_saldo(self, monto: Decimal, descripcion: str = "") -> None:
         """
         Agrega saldo al usuario (ingreso de dinero).
 
         Args:
             monto (Decimal): monto a agregar
+            descripcion (str): descripción del ingreso
         """
-        self.registrar_transaccion("IN", monto)
+        self.registrar_transaccion(
+            "IN",
+            monto,
+            descripcion
+        )
 
-    def quitar_saldo(self, monto: Decimal) -> None:
+    def quitar_saldo(self, monto: Decimal, descripcion: str = "") -> None:
         """
         Retira saldo del usuario si tiene fondos suficientes.
 
         Args:
             monto (Decimal): monto a retirar
+            descripcion (str): descripción del retiro
 
         Raises:
             ValueError: si el usuario no tiene saldo suficiente
@@ -63,4 +71,8 @@ class Wallet:
         if self.obtener_saldo() < monto:
             raise ValueError("Saldo insuficiente")
 
-        self.registrar_transaccion("OUT", monto)
+        self.registrar_transaccion(
+            "OUT",
+            monto,
+            descripcion
+        )
