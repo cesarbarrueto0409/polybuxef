@@ -50,7 +50,9 @@ class Transaction(models.Model):
 
     Representa movimientos de dinero asociados a un usuario,
     permitiendo mantener historial financiero y trazabilidad
-    de operaciones dentro de la plataforma.
+    de operaciones dentro de la plataforma. Además, permite
+    revertir transacciones, anulando abonos/cargos y
+    registrando la acción.
 
     Cada transacción posee:
 
@@ -106,6 +108,10 @@ class Transaction(models.Model):
     descripcion = models.CharField(
         max_length=255,
         blank=True
+    )
+
+    reverted = models.BooleanField(
+        default=False
     )
 
     created_at = models.DateTimeField(

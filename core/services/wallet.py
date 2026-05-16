@@ -53,6 +53,42 @@ class Wallet:
             monto=monto,
             descripcion=descripcion
         )
+    
+    def revertir_transaccion(self, transaccion: Transaction) -> None:
+        """
+        Revierte una transacción creando un movimiento inverso.
+
+        La transacción original no se elimina, sino que se
+        marca como revertida para mantener trazabilidad
+        e historial financiero.
+
+        Args:
+            transaccion (Transaction): transacción a revertir
+
+        Raises:
+            ValueError: si la transacción ya fue revertida
+        """
+
+        if transaccion.reverted:
+            raise ValueError("La transacción ya fue revertida")
+
+        if transaccion.perfil != self.perfil:
+            raise ValueError("La transacción no pertenece a esta wallet")
+        
+        if transaccion.tipo == "IN":
+            tipo_reversa = "OUT"
+        else:
+            tipo_reversa = "IN"
+
+        self.registrar_transaccion(
+            tipo_reversa,
+            transaccion.categoria,
+            transaccion.monto,
+            f"Reversión de transacción #{transaccion.id}"
+        )
+
+        transaccion.reverted = True
+        transaccion.save()
 
     def agregar_saldo(self, categoria: str, monto: Decimal, descripcion: str = "") -> None:
         """
