@@ -30,6 +30,8 @@ class Wallet:
         """
         return self.perfil.obtener_saldo()
 
+    # Funciones básicas de la wallet
+
     def registrar_transaccion(self, tipo: str, categoria: str, monto: Decimal, descripcion: str = "") -> None:
         """
         Registra una transacción en el sistema.
@@ -128,6 +130,54 @@ class Wallet:
         self.registrar_transaccion(
             "OUT",
             categoria,
+            monto,
+            descripcion
+        )
+
+    # Wrappers, no agregan lógica nueva
+
+    #TODO: cuando estén listas las apuestas, se debe entregar como parámetro un id a la apuesta/opción a comprar
+    def comprar_shares(self, monto: Decimal, descripcion: str = ""):
+        self.quitar_saldo(
+            "BET_BUY",
+            monto,
+            descripcion
+        )
+
+    #TODO: cuando estén listas las apuestas, se debe entregar como parámetro un id a la apuesta/opción que se vende
+    def vender_shares(self, monto: Decimal, descripcion: str = ""):
+        self.agregar_saldo(
+            "BET_SELL",
+            monto,
+            descripcion
+        )
+
+    #TODO: cuando estén listas las apuestas, se debe agregar de qué apuesta viene la recompensa (validación)
+    def otorgar_recompensa_apuesta(self, monto: Decimal, descripcion: str = ""):
+        self.agregar_saldo(
+            "BET_REWARD",
+            monto,
+            descripcion
+        )
+
+    #TODO: cuando esté listo el day streak, reformular función para otorgar recompensas según el día correspondiente
+    def otorgar_recompensa_streak(self, monto: Decimal, descripcion: str = ""):
+        self.agregar_saldo(
+            "STREAK_REWARD",
+            monto,
+            descripcion
+        )
+
+    def admin_otorgar_saldo(self, monto: Decimal, descripcion: str = ""):
+        self.agregar_saldo(
+            "ADMIN_GRANT",
+            monto,
+            descripcion
+        )
+
+    def admin_remover_saldo(self, monto: Decimal, descripcion: str = ""):
+        self.quitar_saldo(
+            "ADMIN_REMOVE",
             monto,
             descripcion
         )
