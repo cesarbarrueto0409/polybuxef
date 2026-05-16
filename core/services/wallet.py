@@ -39,7 +39,13 @@ class Wallet:
             categoria (str): categoría de la transacción
             monto (Decimal): monto de la transacción
             descripcion (str): descripción del movimiento
+        
+        Raises:
+            ValueError: si el monto es inválido (igual o menor a cero)
         """
+        if monto <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
+
         Transaction.objects.create(
             perfil=self.perfil,
             tipo=tipo,
@@ -56,6 +62,9 @@ class Wallet:
             monto (Decimal): monto a agregar
             categoria (str): categoría de la transacción
             descripcion (str): descripción del ingreso
+
+        Raises:
+            ValueError: si el monto es inválido (igual o menor a cero)
         """
         self.registrar_transaccion(
             "IN",
@@ -74,11 +83,12 @@ class Wallet:
             descripcion (str): descripción del retiro
 
         Raises:
+            ValueError: si el monto es inválido (igual o menor a cero)
             ValueError: si el usuario no tiene saldo suficiente
         """
         if self.obtener_saldo() < monto:
             raise ValueError("Saldo insuficiente")
-
+        
         self.registrar_transaccion(
             "OUT",
             categoria,
