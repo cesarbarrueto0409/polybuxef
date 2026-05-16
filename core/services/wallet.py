@@ -4,9 +4,12 @@ from core.models import Transaction
 
 class Wallet:
     """
-    Capa de lógica de negocio para manejo de saldo del usuario. Modela una billetera del usuario.
+    Capa de lógica de negocio para manejo de saldo del usuario.
+    Modela una billetera del usuario.
 
-    Funciona sobre un sistema de transacciones, donde el saldo no se almacena directamente, sino que se calcula a partir del historial de movimientos IN/OUT.
+    Funciona sobre un sistema de transacciones, donde
+    el saldo no se almacena directamente, sino que se
+    calcula a partir del historial de movimientos IN/OUT.
     """
 
     def __init__(self, perfil):
@@ -27,42 +30,47 @@ class Wallet:
         """
         return self.perfil.obtener_saldo()
 
-    def registrar_transaccion(self, tipo: str, monto: Decimal, descripcion: str = "") -> None:
+    def registrar_transaccion(self, tipo: str, categoria: str, monto: Decimal, descripcion: str = "") -> None:
         """
         Registra una transacción en el sistema.
 
         Args:
             tipo (str): tipo de transacción ('IN' o 'OUT')
+            categoria (str): categoría de la transacción
             monto (Decimal): monto de la transacción
             descripcion (str): descripción del movimiento
         """
         Transaction.objects.create(
             perfil=self.perfil,
             tipo=tipo,
+            categoria=categoria,
             monto=monto,
             descripcion=descripcion
         )
 
-    def agregar_saldo(self, monto: Decimal, descripcion: str = "") -> None:
+    def agregar_saldo(self, categoria: str, monto: Decimal, descripcion: str = "") -> None:
         """
         Agrega saldo al usuario (ingreso de dinero).
 
         Args:
             monto (Decimal): monto a agregar
+            categoria (str): categoría de la transacción
             descripcion (str): descripción del ingreso
         """
         self.registrar_transaccion(
             "IN",
+            categoria,
             monto,
             descripcion
         )
 
-    def quitar_saldo(self, monto: Decimal, descripcion: str = "") -> None:
+    def quitar_saldo(self, categoria: str, monto: Decimal, descripcion: str = "") -> None:
         """
         Retira saldo del usuario si tiene fondos suficientes.
 
         Args:
             monto (Decimal): monto a retirar
+            categoria (str): categoría de la transacción
             descripcion (str): descripción del retiro
 
         Raises:
@@ -73,6 +81,7 @@ class Wallet:
 
         self.registrar_transaccion(
             "OUT",
+            categoria,
             monto,
             descripcion
         )

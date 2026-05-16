@@ -40,14 +40,34 @@ class Transaction(models.Model):
     permitiendo mantener historial financiero y trazabilidad
     de operaciones dentro de la plataforma.
 
-    Tipos de movimiento:
-    - IN: ingreso de dinero
-    - OUT: salida de dinero
+    Cada transacción posee:
+
+        Tipos de movimiento:
+        - IN: ingreso de dinero
+        - OUT: salida de dinero
+
+        Categorías:
+        - BET_BUY
+        - BET_SELL
+        - BET_REWARD
+        - STREAK_REWARD
+        - ADMIN_GRANT
+        - ADMIN_REMOVE
+
     """
 
     TIPO_CHOICES = [
         ("IN", "Ingreso"),
         ("OUT", "Egreso"),
+    ]
+
+    CATEGORIA_CHOICES = [
+        ("BET_BUY", "Compra de shares"),
+        ("BET_SELL", "Venta de shares"),
+        ("BET_REWARD", "Recompensa de apuesta"),
+        ("STREAK_REWARD", "Recompensa diaria"),
+        ("ADMIN_GRANT", "Saldo otorgado por administrador"),
+        ("ADMIN_REMOVE", "Saldo removido por administrador"),
     ]
 
     perfil = models.ForeignKey(
@@ -59,6 +79,11 @@ class Transaction(models.Model):
     tipo = models.CharField(
         max_length=3,
         choices=TIPO_CHOICES
+    )
+
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIA_CHOICES
     )
     
     monto = models.DecimalField(
