@@ -10,13 +10,15 @@ class Perfil(models.Model):
 
     Relación 1 a 1 con el usuario de Django.
     Calcula el saldo del usuario a partir de sus transacciones (ledger system).
+    Permite acceso al historial de transacciones del usuario.
     """
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def obtener_saldo(self) -> Decimal:
         """
-        Calcula el saldo actual del usuario sumando ingresos y egresos.
+        Calcula el saldo actual del usuario
+        sumando ingresos y egresos.
 
         Returns:
             Decimal: saldo actual del usuario
@@ -30,6 +32,16 @@ class Perfil(models.Model):
         )["total"] or Decimal("0")
 
         return ingresos - egresos
+    
+    def obtener_historial_transacciones(self):
+        """
+        Obtiene el historial de transacciones del usuario
+        ordenado desde la más reciente a la más antigua.
+
+        Returns:
+            QuerySet[Transaction]: historial de transacciones
+        """
+        return self.transactions.order_by("-created_at")
 
 
 class Transaction(models.Model):
@@ -99,3 +111,6 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return f"{self.tipo} | {self.categoria} | {self.monto}"
