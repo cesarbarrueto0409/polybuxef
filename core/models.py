@@ -4,7 +4,7 @@ from django.db.models import Sum
 from decimal import Decimal
 
 
-class Perfil(models.Model):
+class Profile(models.Model):
     """
     Perfil de usuario del sistema.
 
@@ -13,9 +13,9 @@ class Perfil(models.Model):
     Permite acceso al historial de transacciones del usuario.
     """
 
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    def obtener_saldo(self) -> Decimal:
+    def get_balance(self) -> Decimal:
         """
         Calcula el saldo actual del usuario
         sumando ingresos y egresos.
@@ -23,17 +23,17 @@ class Perfil(models.Model):
         Returns:
             Decimal: saldo actual del usuario
         """
-        ingresos = self.transactions.filter(tipo="IN").aggregate(
-            total=Sum("monto")
+        income = self.transactions.filter(kind="IN").aggregate(
+            total=Sum("amount")
         )["total"] or Decimal("0")
 
-        egresos = self.transactions.filter(tipo="OUT").aggregate(
-            total=Sum("monto")
+        expenses = self.transactions.filter(kind="OUT").aggregate(
+            total=Sum("amount")
         )["total"] or Decimal("0")
 
-        return ingresos - egresos
-    
-    def obtener_historial_transacciones(self):
+        return income - expenses
+
+    def get_transaction_history(self):
         """
         Obtiene el historial de transacciones del usuario
         ordenado desde la más reciente a la más antigua.
@@ -56,11 +56,11 @@ class Transaction(models.Model):
 
     Cada transacción posee:
 
-        Tipos de movimiento:
+        Tipos de movimiento: (kind)
         - IN: ingreso de dinero
         - OUT: salida de dinero
 
-        Categorías:
+        Categorías: (category)
         - BET_BUY
         - BET_SELL
         - BET_REWARD
@@ -70,12 +70,12 @@ class Transaction(models.Model):
 
     """
 
-    TIPO_CHOICES = [
+    KIND_CHOICES = [
         ("IN", "Ingreso"),
         ("OUT", "Egreso"),
     ]
 
-    CATEGORIA_CHOICES = [
+    CATEGORY_CHOICES = [
         ("BET_BUY", "Compra de shares"),
         ("BET_SELL", "Venta de shares"),
         ("BET_REWARD", "Recompensa de apuesta"),
@@ -84,28 +84,28 @@ class Transaction(models.Model):
         ("ADMIN_REMOVE", "Saldo removido por administrador"),
     ]
 
-    perfil = models.ForeignKey(
-        Perfil,
+    profile = models.ForeignKey(
+        Profile,
         on_delete=models.CASCADE,
         related_name="transactions"
     )
 
-    tipo = models.CharField(
+    kind = models.CharField(
         max_length=3,
-        choices=TIPO_CHOICES
+        choices=KIND_CHOICES
     )
 
-    categoria = models.CharField(
+    category = models.CharField(
         max_length=20,
-        choices=CATEGORIA_CHOICES
+        choices=CATEGORY_CHOICES
     )
-    
-    monto = models.DecimalField(
+
+    amount = models.DecimalField(
         max_digits=12,
         decimal_places=2
     )
 
-    descripcion = models.CharField(
+    description = models.CharField(
         max_length=255,
         blank=True
     )
@@ -119,4 +119,4 @@ class Transaction(models.Model):
     )
 
     def __str__(self):
-        return f"{self.tipo} | {self.categoria} | {self.monto}"
+        return f"{self.kind} | {self.category} | {self.amount}"

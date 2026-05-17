@@ -12,51 +12,51 @@ class Wallet:
     calcula a partir del historial de movimientos IN/OUT.
     """
 
-    def __init__(self, perfil):
+    def __init__(self, profile):
         """
         Inicializa la wallet para un perfil específico.
 
         Args:
-            perfil: instancia del modelo Perfil
+            profile: instancia del modelo Profile
         """
-        self.perfil = perfil
+        self.profile = profile
 
-    def obtener_saldo(self) -> Decimal:
+    def get_balance(self) -> Decimal:
         """
         Obtiene el saldo actual del usuario.
 
         Returns:
             Decimal: saldo calculado desde transacciones
         """
-        return self.perfil.obtener_saldo()
+        return self.profile.get_balance()
 
     # Funciones básicas de la wallet
 
-    def registrar_transaccion(self, tipo: str, categoria: str, monto: Decimal, descripcion: str = "") -> None:
+    def register_transaction(self, kind: str, category: str, amount: Decimal, description: str = "") -> None:
         """
         Registra una transacción en el sistema.
 
         Args:
-            tipo (str): tipo de transacción ('IN' o 'OUT')
-            categoria (str): categoría de la transacción
-            monto (Decimal): monto de la transacción
-            descripcion (str): descripción del movimiento
+            kind (str): tipo de transacción ('IN' o 'OUT')
+            category (str): categoría de la transacción
+            amount (Decimal): monto de la transacción
+            description (str): descripción del movimiento
         
         Raises:
             ValueError: si el monto es inválido (igual o menor a cero)
         """
-        if monto <= 0:
+        if amount <= 0:
             raise ValueError("El monto debe ser mayor a 0")
 
         Transaction.objects.create(
-            perfil=self.perfil,
-            tipo=tipo,
-            categoria=categoria,
-            monto=monto,
-            descripcion=descripcion
+            profile=self.profile,
+            kind=kind,
+            category=category,
+            amount=amount,
+            description=description
         )
     
-    def revertir_transaccion(self, transaccion: Transaction) -> None:
+    def revert_transaction(self, transaction: Transaction) -> None:
         """
         Revierte una transacción creando un movimiento inverso.
 
@@ -65,119 +65,119 @@ class Wallet:
         e historial financiero.
 
         Args:
-            transaccion (Transaction): transacción a revertir
+            transaction (Transaction): transacción a revertir
 
         Raises:
             ValueError: si la transacción ya fue revertida
         """
 
-        if transaccion.reverted:
+        if transaction.reverted:
             raise ValueError("La transacción ya fue revertida")
 
-        if transaccion.perfil != self.perfil:
+        if transaction.profile != self.profile:
             raise ValueError("La transacción no pertenece a esta wallet")
         
-        if transaccion.tipo == "IN":
-            tipo_reversa = "OUT"
+        if transaction.kind == "IN":
+            reverse_type = "OUT"
         else:
-            tipo_reversa = "IN"
+            reverse_type = "IN"
 
-        self.registrar_transaccion(
-            tipo_reversa,
-            transaccion.categoria,
-            transaccion.monto,
-            f"Reversión de transacción #{transaccion.id}"
+        self.register_transaction(
+            reverse_type,
+            transaction.category,
+            transaction.amount,
+            f"Reversión de transacción #{transaction.id}"
         )
 
-        transaccion.reverted = True
-        transaccion.save()
+        transaction.reverted = True
+        transaction.save()
 
-    def agregar_saldo(self, categoria: str, monto: Decimal, descripcion: str = "") -> None:
+    def add_balance(self, category: str, amount: Decimal, description: str = "") -> None:
         """
         Agrega saldo al usuario (ingreso de dinero).
 
         Args:
-            monto (Decimal): monto a agregar
-            categoria (str): categoría de la transacción
-            descripcion (str): descripción del ingreso
+            amount (Decimal): monto a agregar
+            category (str): categoría de la transacción
+            description (str): descripción del ingreso
 
         Raises:
             ValueError: si el monto es inválido (igual o menor a cero)
         """
-        self.registrar_transaccion(
+        self.register_transaction(
             "IN",
-            categoria,
-            monto,
-            descripcion
+            category,
+            amount,
+            description
         )
 
-    def quitar_saldo(self, categoria: str, monto: Decimal, descripcion: str = "") -> None:
+    def subtract_balance(self, category: str, amount: Decimal, description: str = "") -> None:
         """
         Retira saldo del usuario si tiene fondos suficientes.
 
         Args:
-            monto (Decimal): monto a retirar
-            categoria (str): categoría de la transacción
-            descripcion (str): descripción del retiro
+            amount (Decimal): monto a retirar
+            category (str): categoría de la transacción
+            description (str): descripción del retiro
 
         Raises:
             ValueError: si el monto es inválido (igual o menor a cero)
             ValueError: si el usuario no tiene saldo suficiente
         """
-        if self.obtener_saldo() < monto:
+        if self.get_balance() < amount:
             raise ValueError("Saldo insuficiente")
         
-        self.registrar_transaccion(
+        self.register_transaction(
             "OUT",
-            categoria,
-            monto,
-            descripcion
+            category,
+            amount,
+            description
         )
 
     # Wrappers, no agregan lógica nueva
 
     #TODO: cuando estén listas las apuestas, se debe entregar como parámetro un id a la apuesta/opción a comprar
-    def comprar_shares(self, monto: Decimal, descripcion: str = ""):
-        self.quitar_saldo(
+    def buy_shares(self, amount: Decimal, description: str = ""):
+        self.subtract_balance(
             "BET_BUY",
-            monto,
-            descripcion
+            amount,
+            description
         )
 
     #TODO: cuando estén listas las apuestas, se debe entregar como parámetro un id a la apuesta/opción que se vende
-    def vender_shares(self, monto: Decimal, descripcion: str = ""):
-        self.agregar_saldo(
+    def sell_shares(self, amount: Decimal, description: str = ""):
+        self.add_balance(
             "BET_SELL",
-            monto,
-            descripcion
+            amount,
+            description
         )
 
     #TODO: cuando estén listas las apuestas, se debe agregar de qué apuesta viene la recompensa (validación)
-    def otorgar_recompensa_apuesta(self, monto: Decimal, descripcion: str = ""):
-        self.agregar_saldo(
+    def grant_bet_reward(self, amount: Decimal, description: str = ""):
+        self.add_balance(
             "BET_REWARD",
-            monto,
-            descripcion
+            amount,
+            description
         )
 
     #TODO: cuando esté listo el day streak, reformular función para otorgar recompensas según el día correspondiente
-    def otorgar_recompensa_streak(self, monto: Decimal, descripcion: str = ""):
-        self.agregar_saldo(
+    def grant_streak_reward(self, amount: Decimal, description: str = ""):
+        self.add_balance(
             "STREAK_REWARD",
-            monto,
-            descripcion
+            amount,
+            description
         )
 
-    def admin_otorgar_saldo(self, monto: Decimal, descripcion: str = ""):
-        self.agregar_saldo(
+    def admin_grant_balance(self, amount: Decimal, description: str = ""):
+        self.add_balance(
             "ADMIN_GRANT",
-            monto,
-            descripcion
+            amount,
+            description
         )
 
-    def admin_remover_saldo(self, monto: Decimal, descripcion: str = ""):
-        self.quitar_saldo(
+    def admin_remove_balance(self, amount: Decimal, description: str = ""):
+        self.subtract_balance(
             "ADMIN_REMOVE",
-            monto,
-            descripcion
+            amount,
+            description
         )
