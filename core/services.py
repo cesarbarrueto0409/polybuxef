@@ -1,8 +1,51 @@
 from decimal import Decimal
+from datetime import timedelta
+
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
+
 from .models import Usuario, Opcion, Mercado, TransaccionShare, HistorialPrecio, Resolucion
+
+
+def obtener_usuario_actual():
+    # Mientras no exista login real, el frontend queda fijo al usuario 1.
+    usuario, _ = Usuario.objects.get_or_create(
+        id=1,
+        defaults={
+            'nombre': 'usuario_test',
+            'email': 'usuario1@polybuxef.local',
+            'saldo': Decimal('0'),
+        },
+    )
+    return usuario
+
+
+def actualizar_racha_diaria(usuario_id):
+    hoy = timezone.localdate()
+
+    with transaction.atomic():
+        usuario = Usuario.objects.select_for_update().get(id=usuario_id)
+        recompensa_hoy = Decimal('0')
+
+        if usuario.ultima_racha != hoy:
+            if usuario.ultima_racha == hoy - timedelta(days=1):
+                usuario.racha_actual += 1
+            else:
+                usuario.racha_actual = 1
+
+            recompensa_hoy = Decimal(min(usuario.racha_actual, 5) * 100)
+            usuario.saldo += recompensa_hoy
+            usuario.ultima_racha = hoy
+            usuario.save(update_fields=['racha_actual', 'saldo', 'ultima_racha'])
+
+    return {
+        'usuario': usuario,
+        'racha_actual': usuario.racha_actual,
+        'recompensa_hoy': float(recompensa_hoy),
+        'recompensa_siguiente': min(usuario.racha_actual + 1, 5) * 100,
+        'ya_cobrada_hoy': usuario.ultima_racha == hoy,
+    }
 
 
 def comprar(id_usuario, id_opcion, monto):

@@ -81,6 +81,11 @@
       font-size: 0.85rem;
     }
 
+    .nav-user-name {
+      color: var(--text);
+      font-weight: 600;
+    }
+
     main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
     .page-title {
@@ -209,7 +214,7 @@
     <a href="/portafolio/1/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
   </div>
   <div class="nav-user">
-    <span>usuario_test</span>
+    <span class="nav-user-name">{{ usuario.nombre }}</span>
     <span class="balance-chip" id="nav-balance">$ —</span>
   </div>
 </nav>

@@ -14,6 +14,8 @@ class Usuario(models.Model):
   email = models.EmailField(max_length=150, unique=True)
   saldo = models.DecimalField(max_digits=18, decimal_places=2, default=0,
                               validators=[MinValueValidator(0)])
+  racha_actual = models.PositiveIntegerField(default=0)
+  ultima_racha = models.DateField(blank=True, null=True)
   fecha_registro = models.DateTimeField(auto_now_add=True)
 
   class Meta:
