@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Mi Portafolio — Polybuxef{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tab-nav { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:1.5rem; }
+  .tab-nav-btn { background:none; border:none; color:var(--muted); font-size:.9rem; font-weight:600; padding:.6rem 1.2rem; cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; }
+  .tab-nav-btn.active { color:var(--text); border-bottom-color:var(--accent); }
+
+  .hist-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  .hist-table th { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; padding:.5rem .75rem; text-align:left; border-bottom:1px solid var(--border); }
+  .hist-table td { padding:.6rem .75rem; border-bottom:1px solid rgba(42,42,61,.5); }
+  .hist-table tr:hover td { background:rgba(255,255,255,.02); }
+
+  .tipo-chip { display:inline-block; padding:.18rem .55rem; border-radius:12px; font-size:.72rem; font-weight:700; text-transform:uppercase; }
+  .tipo-compra    { background:rgba(0,184,148,.15); color:var(--yes); }
+  .tipo-venta     { background:rgba(214,48,49,.15);  color:var(--no); }
+  .tipo-redencion { background:rgba(108,92,231,.15); color:var(--accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Mi Portafolio</h1>
+
+<div class="tab-nav">
+  <button class="tab-nav-btn active" onclick="showTab('posiciones',this)">Posiciones</button>
+  <button class="tab-nav-btn" onclick="showTab('historial',this)">Historial</button>
+</div>
+
+<div id="tab-posiciones"><p style="color:var(--muted)">Cargando...</p></div>
+<div id="tab-historial" style="display:none;"><p style="color:var(--muted)">Cargando...</p></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-posiciones').style.display = name==='posiciones' ? '' : 'none';
+  document.getElementById('tab-historial').style.display  = name==='historial'  ? '' : 'none';
+  if (name === 'historial') loadHistorial();
+}
+
+async function loadPortfolio() {
+  const el = document.getElementById('tab-posiciones');
+  try {
+    const [rPort, rUser] = await Promise.all([
+      fetch(`/api/portafolio/${USUARIO_ID}/`),
+      fetch(`/api/usuario/${USUARIO_ID}/`),
+    ]);
+    const { portafolio } = await rPort.json();
+    const usuario = await rUser.json();
+
+    const saldo = parseFloat(usuario.saldo).toLocaleString('es-CL',{minimumFractionDigits:2});
+    const abiertas = portafolio.filter(p => p.shares > 0.000001).length;
+
+    let html = `
+      <div class="card" style="margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:2rem;">
+        <div>
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:.2rem;">Saldo disponible</div>
+          <div style="font-size:1.8rem;font-weight:700;color:var(--yes);">$${saldo}</div>
+        </div>
+        <div>
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:.2rem;">Posiciones activas</div>
+          <div style="font-size:1.8rem;font-weight:700;">${abiertas}</div>
+        </div>
+      </div>
+    `;
+
+    if (!portafolio.length) {
+      html += '<div class="card"><p style="color:var(--muted);text-align:center;padding:2rem;">No tienes posiciones. <a href="/" style="color:var(--accent)">Explora los mercados</a>.</p></div>';
+    } else {
+      html += portafolio.map(p => {
+        const puedeRedimir = p.mercado_estado === 'resuelto' && p.es_ganadora === true && p.shares > 0.000001;
+        const yaRedimido   = p.monto_redimido > 0 && p.shares <= 0.000001;
+        const perdio       = p.mercado_estado === 'resuelto' && p.es_ganadora === false;
+
+        let badge = '';
+        if (puedeRedimir)  badge = `<span style="background:rgba(0,184,148,.15);color:var(--yes);padding:.2rem .6rem;border-radius:12px;font-size:.72rem;font-weight:700;">GANÓ — REDIMIR</span>`;
+        else if (yaRedimido) badge = `<span style="background:rgba(108,92,231,.15);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.72rem;font-weight:700;">REDIMIDO ✓</span>`;
+        else if (perdio)   badge = `<span style="background:rgba(214,48,49,.15);color:var(--no);padding:.2rem .6rem;border-radius:12px;font-size:.72rem;font-weight:700;">PERDIÓ</span>`;
+        else if (p.mercado_estado === 'abierto') badge = `<span style="background:rgba(0,184,148,.12);color:var(--yes);padding:.2rem .6rem;border-radius:12px;font-size:.72rem;font-weight:700;">ABIERTO</span>`;
+
+        return `
+        <div class="card" style="margin-bottom:.75rem;">
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+              <div style="font-size:.78rem;color:var(--muted);margin-bottom:.15rem;">${p.mercado_titulo}</div>
+              <div style="font-weight:700;font-size:1rem;">${p.opcion_nombre}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:.75rem;color:var(--muted)">Shares</div>
+              <div style="font-weight:700;">${p.shares > 0 ? parseFloat(p.shares).toFixed(4) : '—'}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:.75rem;color:var(--muted)">Invertido</div>
+              <div style="font-weight:700;">$${parseFloat(p.monto_invertido).toLocaleString('es-CL',{minimumFractionDigits:2})}</div>
+            </div>
+            ${p.monto_redimido > 0 ? `
+            <div style="text-align:right;">
+              <div style="font-size:.75rem;color:var(--muted)">Redimido</div>
+              <div style="font-weight:700;color:var(--yes);">+$${parseFloat(p.monto_redimido).toLocaleString('es-CL',{minimumFractionDigits:2})}</div>
+            </div>` : ''}
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+              ${badge}
+              ${puedeRedimir ? `<button onclick="redimir(${p.opcion_id}, this)" class="btn btn-yes btn-sm">Redimir $${parseFloat(p.shares).toFixed(2)}</button>` : ''}
+              <a href="/mercado/${p.mercado_id}/" class="btn btn-secondary btn-sm">Ver</a>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    el.innerHTML = html;
+  } catch (e) {
+    el.innerHTML = `<p style="color:var(--no)">Error cargando portafolio: ${e}</p>`;
+  }
+}
+
+async function redimir(opcionId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Redimiendo...';
+  const r = await fetch('/redimir/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id_usuario: USUARIO_ID, id_opcion: opcionId}),
+  });
+  const d = await r.json();
+  if (d.ok) {
+    toast(`Redimiste $${parseFloat(d.monto).toFixed(2)} 🎉`, 'ok');
+    fetchBalance();
+    loadPortfolio();
+  } else {
+    toast(d.error || 'Error', 'err');
+    btn.disabled = false;
+    btn.textContent = 'Redimir';
+  }
+}
+
+let historialCargado = false;
+async function loadHistorial() {
+  if (historialCargado) return;
+  historialCargado = true;
+  const el = document.getElementById('tab-historial');
+  try {
+    const r = await fetch(`/api/historial/${USUARIO_ID}/`);
+    const { historial } = await r.json();
+
+    if (!historial.length) {
+      el.innerHTML = '<div class="card"><p style="color:var(--muted);text-align:center;padding:2rem;">Sin transacciones aún.</p></div>';
+      return;
+    }
+
+    el.innerHTML = `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Mercado / Opción</th>
+            <th style="text-align:right">Shares</th>
+            <th style="text-align:right">Monto</th>
+            <th style="text-align:right">Precio unit.</th>
+            <th style="text-align:right">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${historial.map(t => `
+          <tr>
+            <td><span class="tipo-chip tipo-${t.tipo}">${t.tipo}</span></td>
+            <td>
+              <div style="font-weight:600;">${t.opcion}</div>
+              <div style="font-size:.75rem;color:var(--muted)">${t.mercado}</div>
+            </td>
+            <td style="text-align:right;font-weight:600;">${parseFloat(t.shares).toFixed(4)}</td>
+            <td style="text-align:right;font-weight:600;">$${parseFloat(t.monto).toLocaleString('es-CL',{minimumFractionDigits:2})}</td>
+            <td style="text-align:right;color:var(--muted);">$${parseFloat(t.precio_unitario).toFixed(4)}</td>
+            <td style="text-align:right;color:var(--muted);font-size:.8rem;">${new Date(t.fecha).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:var(--no)">Error cargando historial.</p>`;
+  }
+}
+
+loadPortfolio();
+</script>
+{% endblock %}

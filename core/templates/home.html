@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Mercados — Polybuxef{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Mercados abiertos</h1>
+
+<div id="markets-grid" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));">
+  <p style="color:var(--muted)">Cargando mercados...</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadMarkets() {
+  const grid = document.getElementById('markets-grid');
+  try {
+    const r = await fetch('/mercados/');
+    const data = await r.json();
+    const mercados = data.mercados;
+
+    if (!mercados.length) {
+      grid.innerHTML = '<p style="color:var(--muted)">No hay mercados abiertos.</p>';
+      return;
+    }
+
+    grid.innerHTML = mercados.map(m => {
+      const op = m.opciones;
+      const p0 = op[0] ? (op[0].precio * 100).toFixed(1) : 50;
+      const p1 = op[1] ? (op[1].precio * 100).toFixed(1) : 50;
+      const cierre = new Date(m.fecha_cierre).toLocaleDateString('es-CL');
+
+      return `
+      <a href="/mercado/${m.id}/" style="text-decoration:none;color:inherit;">
+        <div class="card" style="cursor:pointer;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+            <span class="badge badge-open">Abierto</span>
+            <span style="font-size:0.78rem;color:var(--muted)">Cierra ${cierre}</span>
+          </div>
+          <h3 style="font-size:1.05rem;margin-bottom:0.4rem;font-weight:600;">${m.titulo}</h3>
+          <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">${m.descripcion || ''}</p>
+
+          ${op[0] ? `
+          <div style="margin-bottom:0.6rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;">
+              <span>${op[0].nombre}</span>
+              <span style="color:var(--yes);font-weight:600;">${p0}%</span>
+            </div>
+            <div class="prob-bar"><div class="prob-bar-fill" style="width:${p0}%"></div></div>
+          </div>
+          ` : ''}
+          ${op[1] ? `
+          <div style="margin-bottom:1rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;">
+              <span>${op[1].nombre}</span>
+              <span style="color:var(--no);font-weight:600;">${p1}%</span>
+            </div>
+            <div class="prob-bar"><div class="prob-bar-fill" style="width:${p1}%;background:var(--no)"></div></div>
+          </div>
+          ` : ''}
+
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.78rem;color:var(--muted)">Liquidez: $${parseFloat(m.liquidez_total).toLocaleString('es-CL')}</span>
+            <div style="display:flex;gap:0.5rem;">
+              ${op[0] ? `<span class="btn btn-yes btn-sm">${op[0].nombre}</span>` : ''}
+              ${op[1] ? `<span class="btn btn-no btn-sm">${op[1].nombre}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = `<p style="color:var(--no)">Error cargando mercados.</p>`;
+  }
+}
+
+loadMarkets();
+</script>
+{% endblock %}
