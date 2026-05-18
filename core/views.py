@@ -7,8 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Mercado, Opcion, TransaccionShare, HistorialPrecio, Usuario
 from .services import (
-    actualizar_racha_diaria,
+    canjear_racha_diaria,
     comprar,
+    obtener_estado_racha,
     obtener_usuario_actual,
     redimir,
     resolver_mercado,
@@ -21,9 +22,10 @@ from .services import (
 def _usuario_contexto():
     return {'usuario': obtener_usuario_actual()}
 
+
 def home(request):
     usuario = obtener_usuario_actual()
-    streak = actualizar_racha_diaria(usuario.id)
+    streak = obtener_estado_racha(usuario.id)
     return render(request, 'home.html', {**streak})
 
 
@@ -186,6 +188,18 @@ def historial_usuario_api(request, id_usuario):
         for t in transacciones
     ]
     return JsonResponse({'historial': data})
+
+
+@csrf_exempt
+@require_POST
+def canjear_racha_view(request):
+    try:
+        usuario = obtener_usuario_actual()
+        resultado = canjear_racha_diaria(usuario.id)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    resultado.pop('usuario', None)
+    return JsonResponse({'ok': True, **resultado})
 
 
 @csrf_exempt

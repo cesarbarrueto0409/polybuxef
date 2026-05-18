@@ -12,6 +12,7 @@ urlpatterns = [
     path('comprar/', views.comprar_view, name='comprar'),
     path('vender/', views.vender_view, name='vender'),
     path('redimir/', views.redimir_view, name='redimir'),
+    path('api/racha/canjear/', views.canjear_racha_view, name='canjear_racha'),
     path('api/mercado/<int:mercado_id>/', views.mercado_api, name='mercado_api'),
     path('api/mercado/<int:mercado_id>/historial/', views.historial_precios_api, name='historial_precios'),
     path('api/mercado/<int:mercado_id>/resolver/', views.resolver_view, name='resolver'),
