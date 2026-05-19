@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Polybuxef{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --surface: #16161f;
+      --surface2: #1e1e2e;
+      --border: #2a2a3d;
+      --accent: #6c5ce7;
+      --accent2: #00cec9;
+      --yes: #00b894;
+      --no: #d63031;
+      --text: #e8e8f0;
+      --muted: #888899;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text); background: var(--surface2); }
+    .nav-links a.active { color: var(--text); background: var(--surface2); }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .balance-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      color: var(--yes);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .nav-user-name {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      transition: border-color 0.15s;
+    }
+
+    .card:hover { border-color: var(--accent); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-yes { background: var(--yes); color: #fff; }
+    .btn-no  { background: var(--no);  color: #fff; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+
+    .btn:hover { opacity: 0.85; }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-open    { background: rgba(0,184,148,.15); color: var(--yes); }
+    .badge-closed  { background: rgba(214,48,49,.15);  color: var(--no); }
+    .badge-resuelto { background: rgba(108,92,231,.15); color: var(--accent); }
+
+    /* Progress bar */
+    .prob-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--yes), var(--accent2));
+      transition: width 0.4s ease;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.8rem 1.2rem;
+      font-size: 0.9rem;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+      max-width: 320px;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.ok   { border-color: var(--yes); color: var(--yes); }
+    #toast.err  { border-color: var(--no);  color: var(--no); }
+
+    /* Input */
+    .input-field {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.55rem 0.8rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-field:focus { border-color: var(--accent); }
+
+    label { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.3rem; display: block; }
+
+    .form-group { margin-bottom: 0.9rem; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">Polybuxef</a>
+  <div class="nav-links">
+    <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+    <a href="/portafolio/1/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-user-name">{{ usuario.nombre }}</span>
+    <span class="balance-chip" id="nav-balance">$ —</span>
+  </div>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const USUARIO_ID = 1;
+
+  function toast(msg, type = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => el.className = '', 3000);
+  }
+
+  async function fetchBalance() {
+    try {
+      const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
+      const d = await r.json();
+      document.getElementById('nav-balance').textContent = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+    } catch {}
+  }
+
+  fetchBalance();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
