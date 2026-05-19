@@ -3,6 +3,13 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.db import transaction
+from .forms import RegistroForm
+from .models import Perfil
 
 from .models import Mercado, Opcion, TransaccionShare, HistorialPrecio, Usuario
 from .services import comprar, vender, resolver_mercado, redimir
@@ -234,3 +241,51 @@ def redimir_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'ok': True, **resultado})
+
+
+def registro_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                user = form.save()
+                usuario = Usuario.objects.create(
+                    nombre=form.cleaned_data['nombre'],
+                    email=form.cleaned_data['email'],
+                    saldo=1000,
+                )
+                Perfil.objects.create(user=user, usuario=usuario)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = RegistroForm()
+    return render(request, 'registration/registro.html', {'form': form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect(request.GET.get('next', 'home'))
+        else:
+            error = 'Usuario o contraseña incorrectos.'
+    return render(request, 'registration/login.html', {'error': error})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+@login_required
+def perfil_view(request):
+    perfil = request.user.perfil
+    usuario = perfil.usuario
+    return render(request, 'perfil.html', {'usuario': usuario})

@@ -18,4 +18,8 @@ urlpatterns = [
     path('api/portafolio/<int:id_usuario>/', views.portafolio, name='portafolio_api'),
     path('api/usuario/<int:id_usuario>/', views.usuario_api, name='usuario_api'),
     path('api/historial/<int:id_usuario>/', views.historial_usuario_api, name='historial_usuario'),
+    path('registro/', views.registro_view, name='registro'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('perfil/', views.perfil_view, name='perfil'),
 ]

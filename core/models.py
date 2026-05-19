@@ -3,6 +3,8 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import User
+
 
 # corri esos comandos
 # python manage.py makemigrations
@@ -94,3 +96,11 @@ class Resolucion(models.Model):
 
   class Meta:
     db_table = 'resoluciones'
+
+
+class Perfil(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'perfiles'
