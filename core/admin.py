@@ -1,5 +1,13 @@
 from django.contrib import admin
-from core.models import Categoria, Mercado, Opcion
+from core.models import (
+    Categoria, 
+    Mercado, 
+    Opcion, 
+    Usuario, 
+    TransaccionShare, 
+    HistorialPrecio, 
+    Resolucion
+)
 
 
 @admin.register(Categoria)
@@ -33,15 +41,42 @@ class OpcionAdmin(admin.ModelAdmin):
     list_filter = ['es_ganadora', 'mercado__estado']
     search_fields = ['nombre', 'mercado__titulo']
     ordering = ['-tokens']
-# Register your models here.
-# core/admin.py
-from django.contrib import admin
-from .models import Usuario, Categoria, Mercado, Opcion, TransaccionShare, HistorialPrecio, Resolucion
 
-admin.site.register(Usuario)
-admin.site.register(Categoria)
-admin.site.register(Mercado)
-admin.site.register(Opcion)
-admin.site.register(TransaccionShare)
-admin.site.register(HistorialPrecio)
-admin.site.register(Resolucion)
+
+@admin.register(Usuario)
+class UsuarioAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo Usuario.
+    """
+    list_display = ['id', 'nombre', 'email', 'saldo', 'fecha_registro']
+    search_fields = ['nombre', 'email']
+    ordering = ['-fecha_registro']
+
+
+@admin.register(TransaccionShare)
+class TransaccionShareAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo TransaccionShare.
+    """
+    list_display = ['id', 'id_usuario', 'id_opcion', 'tipo', 'shares', 'monto', 'fecha']
+    list_filter = ['tipo', 'fecha']
+    ordering = ['-fecha']
+
+
+@admin.register(HistorialPrecio)
+class HistorialPrecioAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo HistorialPrecio.
+    """
+    list_display = ['id', 'id_opcion', 'precio', 'fecha']
+    list_filter = ['fecha']
+    ordering = ['-fecha']
+
+
+@admin.register(Resolucion)
+class ResolucionAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo Resolucion.
+    """
+    list_display = ['id', 'id_mercado', 'id_opcion_ganadora', 'fecha']
+    ordering = ['-fecha']
