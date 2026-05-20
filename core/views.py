@@ -26,27 +26,49 @@ from .services import (
 
 # --- Páginas HTML ---
 
-def _usuario_contexto():
-    return {'usuario': obtener_usuario_actual()}
+
+def _usuario_desde_request(request):
+    if not request.user.is_authenticated:
+        return obtener_usuario_actual()
+
+    try:
+        return request.user.perfil.usuario
+    except Perfil.DoesNotExist:
+        usuario, _ = Usuario.objects.get_or_create(
+            email=request.user.email or f'{request.user.username}@polybuxef.local',
+            defaults={
+                'nombre': request.user.get_full_name() or request.user.username,
+                'saldo': 1000,
+            },
+        )
+        Perfil.objects.create(user=request.user, usuario=usuario)
+        return usuario
+
+
+def _usuario_contexto(request):
+    return {'usuario': _usuario_desde_request(request)}
 
 
 def home(request):
-    usuario = obtener_usuario_actual()
+    usuario = _usuario_desde_request(request)
     streak = obtener_estado_racha(usuario.id)
+    if not request.user.is_authenticated:
+        streak['puede_canjear'] = False
+        streak['estado_racha'] = 'Inicia sesión para cobrar tu racha diaria'
     return render(request, 'home.html', {**streak})
 
 
 def mercado_detalle(request, mercado_id):
     return render(request, 'mercado_detalle.html', {
         'mercado_id': mercado_id,
-        **_usuario_contexto(),
+        **_usuario_contexto(request),
     })
 
 
 def portafolio_page(request, id_usuario):
     return render(request, 'portafolio.html', {
         'id_usuario': id_usuario,
-        **_usuario_contexto(),
+        **_usuario_contexto(request),
     })
 
 
@@ -199,9 +221,10 @@ def historial_usuario_api(request, id_usuario):
 
 @csrf_exempt
 @require_POST
+@login_required
 def canjear_racha_view(request):
     try:
-        usuario = obtener_usuario_actual()
+        usuario = _usuario_desde_request(request)
         resultado = canjear_racha_diaria(usuario.id)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
