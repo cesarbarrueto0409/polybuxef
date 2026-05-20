@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil - Polybuxef{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Mi Perfil</h1>
+
+<div style="display:grid; gap:1.5rem; max-width:600px;">
+
+  <div class="card">
+    <p style="font-size:.8rem; color:var(--muted); margin-bottom:.3rem;">Nombre</p>
+    <p style="font-size:1.1rem; font-weight:600;">{{ usuario.nombre }}</p>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.8rem; color:var(--muted); margin-bottom:.3rem;">Email</p>
+    <p>{{ usuario.email }}</p>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.8rem; color:var(--muted); margin-bottom:.3rem;">Saldo ficticio</p>
+    <p style="font-size:1.5rem; font-weight:700; color:var(--yes);">
+      ${{ usuario.saldo|floatformat:2 }}
+    </p>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.8rem; color:var(--muted); margin-bottom:.3rem;">Miembro desde</p>
+    <p>{{ usuario.fecha_registro|date:"d M Y" }}</p>
+  </div>
+
+  <a href="{% url 'logout' %}" class="btn btn-secondary" style="width:fit-content;">
+    Cerrar sesion
+  </a>
+</div>
+{% endblock %}

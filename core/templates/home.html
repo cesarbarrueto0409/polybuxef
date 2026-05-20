@@ -1,8 +1,101 @@
 {% extends "base.html" %}
 {% block title %}Mercados — Polybuxef{% endblock %}
 
+{% block extra_head %}
+<style>
+  .streak-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 18, 0.72);
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    z-index: 1200;
+  }
+
+  .streak-modal {
+    width: min(100%, 520px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .streak-money {
+    font-size: 2.8rem;
+    line-height: 1;
+    margin-bottom: 0.8rem;
+  }
+
+  .streak-pill {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(0, 184, 148, 0.16);
+    color: var(--yes);
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .streak-summary {
+    margin-bottom: 1.5rem;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .streak-stat dt {
+    font-size: .78rem;
+    color: var(--muted);
+    margin-bottom: .25rem;
+  }
+
+  .streak-stat dd {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1 class="page-title">Mercados abiertos</h1>
+
+<section class="card streak-summary">
+  <dl class="streak-stat">
+    <dt>Racha actual</dt>
+    <dd id="racha-actual">{{ racha_actual }} dias</dd>
+  </dl>
+  <dl class="streak-stat">
+    <dt>Premio de hoy</dt>
+    <dd id="racha-premio-hoy" style="color:var(--yes)">$ {{ recompensa_hoy|floatformat:0 }}</dd>
+  </dl>
+  <dl class="streak-stat">
+    <dt>Premio de manana</dt>
+    <dd id="racha-premio-siguiente">$ {{ recompensa_siguiente }}</dd>
+  </dl>
+  <dl class="streak-stat">
+    <dt>Estado</dt>
+    <dd id="racha-estado" style="font-size:.95rem;">{{ estado_racha }}</dd>
+  </dl>
+</section>
+
+{% if puede_canjear %}
+<aside id="streak-modal" class="streak-modal-backdrop" aria-label="Premio diario disponible">
+  <section class="streak-modal">
+    <p class="streak-money">$$$</p>
+    <p class="streak-pill">Racha x{{ racha_actual }}</p>
+    <h2 style="font-size:2rem;line-height:1.05;margin-bottom:.7rem;">Tu premio diario esta listo</h2>
+    <p style="color:var(--muted);font-size:1rem;margin-bottom:1rem;">Hoy puedes cobrar tu racha y seguir apostando con mas saldo.</p>
+    <p style="font-size:3rem;font-weight:800;color:var(--yes);margin-bottom:1.2rem;">+ ${{ recompensa_hoy|floatformat:0 }}</p>
+    <button id="claim-streak-btn" onclick="claimStreak(this)" class="btn btn-yes" style="width:100%;padding:.9rem;font-size:1rem;">Canjear racha</button>
+  </section>
+</aside>
+{% endif %}
 
 <div id="markets-grid" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));">
   <p style="color:var(--muted)">Cargando mercados...</p>
@@ -11,6 +104,40 @@
 
 {% block extra_js %}
 <script>
+function formatMoney(value) {
+  return Number(value).toLocaleString('es-CL');
+}
+
+function updateStreakUI(data) {
+  document.getElementById('racha-actual').textContent = `${data.racha_actual} dias`;
+  document.getElementById('racha-premio-hoy').textContent = `$ ${formatMoney(data.recompensa_hoy)}`;
+  document.getElementById('racha-premio-siguiente').textContent = `$ ${formatMoney(data.recompensa_siguiente)}`;
+  document.getElementById('racha-estado').textContent = data.estado_racha;
+}
+
+async function claimStreak(btn) {
+  btn.disabled = true;
+  btn.textContent = 'Canjeando...';
+
+  try {
+    const r = await fetch('/api/racha/canjear/', {method: 'POST'});
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'No se pudo canjear la racha');
+    }
+
+    updateStreakUI(data);
+    document.getElementById('streak-modal')?.remove();
+    fetchBalance();
+    toast(`Cobraste $${formatMoney(data.recompensa_cobrada)} por tu racha`, 'ok');
+  } catch (e) {
+    toast(e.message || 'Error canjeando racha', 'err');
+    btn.disabled = false;
+    btn.textContent = 'Canjear racha';
+  }
+}
+
 async function loadMarkets() {
   const grid = document.getElementById('markets-grid');
   try {

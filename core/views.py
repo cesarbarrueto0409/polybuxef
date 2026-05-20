@@ -1,4 +1,5 @@
 import json
+
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
@@ -12,21 +13,41 @@ from .forms import RegistroForm
 from .models import Perfil
 
 from .models import Mercado, Opcion, TransaccionShare, HistorialPrecio, Usuario
-from .services import comprar, vender, resolver_mercado, redimir
+from .services import (
+    canjear_racha_diaria,
+    comprar,
+    obtener_estado_racha,
+    obtener_usuario_actual,
+    redimir,
+    resolver_mercado,
+    vender,
+)
 
 
 # --- Páginas HTML ---
 
+def _usuario_contexto():
+    return {'usuario': obtener_usuario_actual()}
+
+
 def home(request):
-    return render(request, 'home.html')
+    usuario = obtener_usuario_actual()
+    streak = obtener_estado_racha(usuario.id)
+    return render(request, 'home.html', {**streak})
 
 
 def mercado_detalle(request, mercado_id):
-    return render(request, 'mercado_detalle.html', {'mercado_id': mercado_id})
+    return render(request, 'mercado_detalle.html', {
+        'mercado_id': mercado_id,
+        **_usuario_contexto(),
+    })
 
 
 def portafolio_page(request, id_usuario):
-    return render(request, 'portafolio.html', {'id_usuario': id_usuario})
+    return render(request, 'portafolio.html', {
+        'id_usuario': id_usuario,
+        **_usuario_contexto(),
+    })
 
 
 # --- APIs JSON ---
@@ -102,7 +123,13 @@ def usuario_api(request, id_usuario):
         u = Usuario.objects.get(id=id_usuario)
     except Usuario.DoesNotExist:
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    return JsonResponse({'id': u.id, 'nombre': u.nombre, 'saldo': float(u.saldo)})
+    return JsonResponse({
+        'id': u.id,
+        'nombre': u.nombre,
+        'saldo': float(u.saldo),
+        'racha_actual': u.racha_actual,
+        'ultima_racha': u.ultima_racha.isoformat() if u.ultima_racha else None,
+    })
 
 
 @require_GET
@@ -168,6 +195,18 @@ def historial_usuario_api(request, id_usuario):
         for t in transacciones
     ]
     return JsonResponse({'historial': data})
+
+
+@csrf_exempt
+@require_POST
+def canjear_racha_view(request):
+    try:
+        usuario = obtener_usuario_actual()
+        resultado = canjear_racha_diaria(usuario.id)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    resultado.pop('usuario', None)
+    return JsonResponse({'ok': True, **resultado})
 
 
 @csrf_exempt

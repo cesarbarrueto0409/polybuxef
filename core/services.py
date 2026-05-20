@@ -1,8 +1,80 @@
 from decimal import Decimal
+from datetime import timedelta
+
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
+
 from .models import Usuario, Opcion, Mercado, TransaccionShare, HistorialPrecio, Resolucion
+
+
+def obtener_usuario_actual():
+    # Mientras no exista login real, el frontend queda fijo al usuario 1.
+    usuario, _ = Usuario.objects.get_or_create(
+        id=1,
+        defaults={
+            'nombre': 'usuario_test',
+            'email': 'usuario1@polybuxef.local',
+            'saldo': Decimal('0'),
+        },
+    )
+    return usuario
+
+
+def _recompensa_racha(dias):
+    return min(dias, 5) * 100
+
+
+def obtener_estado_racha(usuario_id):
+    hoy = timezone.localdate()
+    usuario = Usuario.objects.get(id=usuario_id)
+
+    ya_cobrada_hoy = usuario.ultima_racha == hoy
+    if ya_cobrada_hoy:
+        racha_actual = usuario.racha_actual
+        recompensa_hoy = 0
+        estado_racha = 'Ya cobraste tu racha hoy'
+    elif usuario.ultima_racha == hoy - timedelta(days=1):
+        racha_actual = usuario.racha_actual + 1
+        recompensa_hoy = _recompensa_racha(racha_actual)
+        estado_racha = 'Tienes una racha lista para cobrar'
+    else:
+        racha_actual = 1
+        recompensa_hoy = _recompensa_racha(racha_actual)
+        estado_racha = 'Tu racha diaria te esta esperando'
+
+    return {
+        'usuario': usuario,
+        'racha_actual': racha_actual,
+        'recompensa_hoy': recompensa_hoy,
+        'recompensa_siguiente': _recompensa_racha(racha_actual + 1),
+        'ya_cobrada_hoy': ya_cobrada_hoy,
+        'puede_canjear': not ya_cobrada_hoy,
+        'estado_racha': estado_racha,
+    }
+
+
+def canjear_racha_diaria(usuario_id):
+    hoy = timezone.localdate()
+    recompensa_cobrada = Decimal('0')
+
+    with transaction.atomic():
+        usuario = Usuario.objects.select_for_update().get(id=usuario_id)
+
+        if usuario.ultima_racha != hoy:
+            if usuario.ultima_racha == hoy - timedelta(days=1):
+                usuario.racha_actual += 1
+            else:
+                usuario.racha_actual = 1
+
+            recompensa_cobrada = Decimal(_recompensa_racha(usuario.racha_actual))
+            usuario.saldo += recompensa_cobrada
+            usuario.ultima_racha = hoy
+            usuario.save(update_fields=['racha_actual', 'saldo', 'ultima_racha'])
+
+    estado = obtener_estado_racha(usuario_id)
+    estado['recompensa_cobrada'] = float(recompensa_cobrada)
+    return estado
 
 
 def comprar(id_usuario, id_opcion, monto):
