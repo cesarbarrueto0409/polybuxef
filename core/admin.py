@@ -5,12 +5,11 @@ from core.models import (
     HistorialPrecio,
     Mercado,
     Opcion,
-    Perfil,
+    Profile,
     Resolucion,
+    Transaction,
     TransaccionShare,
-    Usuario,
 )
-
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
@@ -44,16 +43,22 @@ class OpcionAdmin(admin.ModelAdmin):
     ordering = ["-tokens"]
 
 
-@admin.register(Usuario)
-class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ["id", "nombre", "email", "saldo", "racha_actual", "fecha_registro"]
-    search_fields = ["nombre", "email"]
-    ordering = ["-fecha_registro"]
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "nombre", "racha_actual", "ultima_racha"]
+    search_fields = ["user__username", "nombre"]
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ["id", "profile", "kind", "category", "amount", "reverted", "created_at"]
+    list_filter = ["kind", "category", "reverted"]
+    ordering = ["-created_at"]
 
 
 @admin.register(TransaccionShare)
 class TransaccionShareAdmin(admin.ModelAdmin):
-    list_display = ["id", "usuario", "opcion", "tipo", "shares", "monto", "fecha"]
+    list_display = ["id", "profile", "opcion", "tipo", "shares", "monto", "fecha"]
     list_filter = ["tipo", "fecha"]
     ordering = ["-fecha"]
 
@@ -69,9 +74,3 @@ class HistorialPrecioAdmin(admin.ModelAdmin):
 class ResolucionAdmin(admin.ModelAdmin):
     list_display = ["id", "mercado", "opcion_ganadora", "fecha"]
     ordering = ["-fecha"]
-
-
-@admin.register(Perfil)
-class PerfilAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "usuario"]
-    search_fields = ["user__username", "usuario__nombre", "usuario__email"]
