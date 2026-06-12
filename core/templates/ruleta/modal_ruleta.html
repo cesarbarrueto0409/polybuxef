@@ -1,0 +1,486 @@
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-ruleta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    position: relative;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .btn-cerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    font-size: 1.2rem;
+  }
+
+  .btn-cerrar:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  .ruleta-container {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    margin: 0 auto 2rem;
+  }
+
+  .ruleta-wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 8px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    background: conic-gradient(
+      from 0deg,
+      #95a5a6 0deg 54deg,
+      #3498db 54deg 108deg,
+      #95a5a6 108deg 162deg,
+      #9b59b6 162deg 216deg,
+      #95a5a6 216deg 270deg,
+      #3498db 270deg 324deg,
+      #f39c12 324deg 342deg,
+      #95a5a6 342deg 360deg
+    );
+    box-shadow: 0 0 0 4px var(--surface), 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .ruleta-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: var(--surface);
+    border: 4px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .ruleta-pointer {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 35px solid #ff4757;
+    z-index: 10;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+  }
+
+  .ruleta-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .ruleta-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+
+  .info-giros {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .info-giros p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  .info-giros .saldo {
+    color: var(--yes);
+    font-weight: 600;
+  }
+
+  .info-giros .giros {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .btn-girar {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-girar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn-girar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-comprar {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--yes);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+
+  .btn-comprar:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  .btn-comprar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<div class="modal-overlay" onclick="if(event.target === this) cerrarRuleta()">
+  <div class="modal-ruleta">
+    <div class="modal-header">
+      <button class="btn-cerrar" onclick="cerrarRuleta()">×</button>
+      <h2>Ruleta de Coleccionables</h2>
+      <p>Gira y obtén coleccionables únicos</p>
+    </div>
+    
+    <div class="modal-body">
+      <div class="info-giros">
+        <p>Saldo: <span class="saldo">${{ usuario.saldo }}</span></p>
+        <p>Giros disponibles: <span class="giros" id="giros-display">{{ giros_disponibles }}</span></p>
+      </div>
+
+      <div class="ruleta-container">
+        <div class="ruleta-pointer"></div>
+        <div class="ruleta-wheel" id="ruleta-wheel">
+          <div class="ruleta-center">?</div>
+          <div class="ruleta-labels">
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(27deg) translateY(-120px);">COMÚN</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(81deg) translateY(-120px);">RARO</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(135deg) translateY(-120px);">COMÚN</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(189deg) translateY(-120px);">ÉPICO</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(243deg) translateY(-120px);">COMÚN</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(297deg) translateY(-120px);">RARO</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(333deg) translateY(-120px); font-size: 0.7rem;">LEGEND</div>
+            <div class="ruleta-label" style="transform: translate(-50%, -50%) rotate(351deg) translateY(-120px);">COMÚN</div>
+          </div>
+        </div>
+      </div>
+
+      {% if giros_disponibles > 0 %}
+        <button class="btn-girar" onclick="girarRuleta()" id="btn-girar">
+          Girar (${{ costo_giro }})
+        </button>
+      {% else %}
+        {% if puede_comprar %}
+          <button class="btn-comprar" onclick="comprarGiro()" id="btn-comprar">
+            Comprar 1 Giro (${{ costo_giro }})
+          </button>
+        {% else %}
+          <div style="text-align: center; padding: 1rem; color: var(--no); background: rgba(214,48,49,0.1); border-radius: 12px;">
+            <p style="margin: 0; font-weight: 600;">Saldo insuficiente</p>
+            <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--muted);">Apuesta en eventos o usa tu racha diaria para ganar más</p>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+let girando = false;
+let girosDisponibles = {{ giros_disponibles }};
+
+const rarezaAngulos = {
+  'comun': [27, 135, 243, 351],
+  'raro': [81, 297],
+  'epico': 189,
+  'legendario': 333
+};
+
+async function comprarGiro() {
+  console.log('[DEBUG] comprarGiro() llamado');
+  const btnComprar = document.getElementById('btn-comprar');
+  
+  if (btnComprar) {
+    btnComprar.disabled = true;
+    btnComprar.textContent = 'Comprando...';
+  }
+
+  try {
+    const csrfToken = getCookie('csrftoken');
+    console.log('[DEBUG] CSRF Token:', csrfToken ? 'encontrado' : 'NO ENCONTRADO');
+    
+    console.log('[DEBUG] Enviando POST a /ruleta/comprar-giro/');
+    const response = await fetch('/ruleta/comprar-giro/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      }
+    });
+
+    console.log('[DEBUG] Response status:', response.status);
+    const data = await response.json();
+    console.log('[DEBUG] Response data:', data);
+
+    if (data.success) {
+      console.log('[DEBUG] Compra exitosa');
+      toast('Giro comprado exitosamente', 'ok');
+      girosDisponibles = data.giros_disponibles;
+      cerrarRuleta();
+      setTimeout(() => abrirRuleta(), 300);
+      if (window.fetchBalance) fetchBalance();
+    } else {
+      console.error('[DEBUG] Error en respuesta:', data.error);
+      toast(data.error || 'Error al comprar giro', 'err');
+      if (btnComprar) {
+        btnComprar.disabled = false;
+        btnComprar.textContent = 'Comprar 1 Giro (${{ costo_giro }})';
+      }
+    }
+  } catch (error) {
+    console.error('[DEBUG] Exception capturada:', error);
+    toast('Error al comprar giro', 'err');
+    if (btnComprar) {
+      btnComprar.disabled = false;
+      btnComprar.textContent = 'Comprar 1 Giro (${{ costo_giro }})';
+    }
+  }
+}
+
+async function girarRuleta() {
+  if (girando) return;
+  
+  girando = true;
+  const btnGirar = document.getElementById('btn-girar');
+  if (btnGirar) {
+    btnGirar.disabled = true;
+    btnGirar.textContent = 'Girando...';
+  }
+
+  try {
+    const response = await fetch('/ruleta/girar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      girosDisponibles = data.giros_restantes;
+      const girosDisplay = document.getElementById('giros-display');
+      if (girosDisplay) {
+        girosDisplay.textContent = girosDisponibles;
+      }
+      
+      await animarRuleta(data.coleccionable.rareza);
+      
+      setTimeout(() => {
+        mostrarResultado(data);
+        if (window.fetchBalance) fetchBalance();
+      }, 500);
+    } else {
+      toast(data.error || 'Error al girar', 'err');
+      girando = false;
+      if (btnGirar) {
+        btnGirar.disabled = false;
+        btnGirar.textContent = 'Girar (${{ costo_giro }})';
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    toast('Error al girar la ruleta', 'err');
+    girando = false;
+    if (btnGirar) {
+      btnGirar.disabled = false;
+      btnGirar.textContent = 'Girar (${{ costo_giro }})';
+    }
+  }
+}
+
+async function animarRuleta(rareza) {
+  const wheel = document.getElementById('ruleta-wheel');
+  let anguloDestino;
+  const posiblesAngulos = rarezaAngulos[rareza];
+  
+  if (Array.isArray(posiblesAngulos)) {
+    anguloDestino = posiblesAngulos[Math.floor(Math.random() * posiblesAngulos.length)];
+  } else {
+    anguloDestino = posiblesAngulos;
+  }
+  
+  const vueltasCompletas = 1440;
+  const anguloFinal = vueltasCompletas + (360 - anguloDestino);
+  
+  wheel.style.transform = `rotate(${anguloFinal}deg)`;
+  await new Promise(resolve => setTimeout(resolve, 4000));
+}
+
+function mostrarResultado(data) {
+  const coleccionable = data.coleccionable;
+  const esNuevo = data.es_nuevo;
+  
+  const coloresRareza = {
+    'comun': '#95a5a6',
+    'raro': '#3498db',
+    'epico': '#9b59b6',
+    'legendario': '#f39c12'
+  };
+  
+  const color = coloresRareza[coleccionable.rareza] || '#95a5a6';
+  
+  const modalResultado = document.createElement('div');
+  modalResultado.innerHTML = `
+    <div class="modal-overlay" style="z-index: 10001;">
+      <div class="modal-ruleta" style="max-width: 400px;">
+        <div class="modal-header" style="border-bottom-color: ${color};">
+          <h2 style="color: ${color};">${esNuevo ? 'NUEVO' : 'Obtenido'}</h2>
+          <p style="color: ${color}; font-weight: 600; text-transform: uppercase;">${coleccionable.rareza_display}</p>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+          <div style="font-size: 4rem; margin: 1rem 0; color: ${color};">
+            ${coleccionable.imagen_url ? `<img src="${coleccionable.imagen_url}" alt="${coleccionable.nombre}" style="width: 120px; height: 120px; object-fit: contain;">` : '&#9733;'}
+          </div>
+          <h3 style="margin: 1rem 0; font-size: 1.3rem;">${coleccionable.nombre}</h3>
+          <p style="color: var(--muted); margin-bottom: 1.5rem;">${coleccionable.descripcion}</p>
+          ${!esNuevo ? `<p style="color: var(--accent); font-weight: 600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
+          <button class="btn-primary" style="width: 100%; padding: 0.8rem; margin-top: 1rem;" onclick="cerrarResultado()">
+            Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modalResultado);
+  modalResultado.id = 'modal-resultado';
+}
+
+function cerrarResultado() {
+  const modalResultado = document.getElementById('modal-resultado');
+  if (modalResultado) {
+    modalResultado.remove();
+  }
+  cerrarRuleta();
+  girando = false;
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
