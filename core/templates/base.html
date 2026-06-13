@@ -211,6 +211,7 @@
   <a href="/" class="nav-logo">Polybuxef</a>
   <div class="nav-links">
     <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+    <a href="{% url 'buscar_perfiles' %}" {% if request.path == '/perfiles/' %}class="active"{% endif %}>Perfiles</a>
     {% if user.is_authenticated and user.perfil %}
     <a href="/portafolio/{{ user.perfil.usuario.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
     {% endif %}
