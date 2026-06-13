@@ -211,8 +211,8 @@
   <a href="/" class="nav-logo">Polybuxef</a>
   <div class="nav-links">
     <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
-    {% if user.is_authenticated and user.perfil %}
-    <a href="/portafolio/{{ user.perfil.usuario.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
+    {% if user.is_authenticated %}
+    <a href="/portafolio/{{ user.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
     {% endif %}
   </div>
   <div class="nav-user">
@@ -233,7 +233,7 @@
 <div id="toast"></div>
 
 <script>
-  const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
+  const USUARIO_ID = {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %};
 
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
