@@ -358,16 +358,14 @@
     {% if user.is_authenticated and user.perfil %}
     <a href="/portafolio/{{ user.perfil.usuario.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
     <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Mis Coleccionables</a>
-    {% if user.is_authenticated %}
-    <a href="/portafolio/{{ user.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
     {% endif %}
   </div>
   <div class="nav-user">
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and user.perfil %}
       <button onclick="abrirRuleta()" class="btn-ruleta">
         Juega a la Ruleta
       </button>
-      <a href="{% url 'perfil' %}" style="color:var(--muted); text-decoration:none;">{{ user.username }}</a>
+      <a href="{% url 'perfil' %}" style="color:var(--muted); text-decoration:none;">{{ user.perfil.usuario.username }}</a>
       <span class="balance-chip" id="nav-balance">$ —</span>
     {% else %}
       <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Iniciar sesión</a>
@@ -383,7 +381,7 @@
 <div id="toast"></div>
 
 <script>
-  const USUARIO_ID = {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %};
+  const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
 
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
