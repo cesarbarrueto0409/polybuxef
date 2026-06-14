@@ -5,8 +5,9 @@ from core.models import (
     HistorialPrecio,
     Mercado,
     Opcion,
-    Perfil,
+    Profile,
     Resolucion,
+    Transaction,
     TransaccionShare,
     Usuario,
     Coleccionable,
@@ -15,7 +16,6 @@ from core.models import (
     ConfiguracionRuleta,
     HistorialRuleta,
 )
-
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
@@ -57,11 +57,22 @@ class UsuarioAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'nombre', 'email', 'saldo', 'giros_disponibles', 'fecha_registro']
     search_fields = ['username', 'nombre', 'email']
     ordering = ['-fecha_registro']
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "nombre", "racha_actual", "ultima_racha"]
+    search_fields = ["user__username", "nombre"]
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ["id", "profile", "kind", "category", "amount", "reverted", "created_at"]
+    list_filter = ["kind", "category", "reverted"]
+    ordering = ["-created_at"]
 
 
 @admin.register(TransaccionShare)
 class TransaccionShareAdmin(admin.ModelAdmin):
-    list_display = ["id", "usuario", "opcion", "tipo", "shares", "monto", "fecha"]
+    list_display = ["id", "profile", "opcion", "tipo", "shares", "monto", "fecha"]
     list_filter = ["tipo", "fecha"]
     ordering = ["-fecha"]
 
