@@ -307,6 +307,8 @@ def registro_view(request):
         if form.is_valid():
             with transaction.atomic():
                 user = form.save()
+                usuario = Usuario.objects.create(
+                    username=form.cleaned_data['username'],  # Agregado: usar el username del formulario
                 user.email = form.cleaned_data['email']
                 user.save(update_fields=['email'])
                 profile = Profile.objects.create(

@@ -9,6 +9,12 @@ from core.models import (
     Resolucion,
     Transaction,
     TransaccionShare,
+    Usuario,
+    Coleccionable,
+    UsuarioColeccionable,
+    RuletaProbabilidad,
+    ConfiguracionRuleta,
+    HistorialRuleta,
 )
 
 @admin.register(Categoria)
@@ -43,6 +49,14 @@ class OpcionAdmin(admin.ModelAdmin):
     ordering = ["-tokens"]
 
 
+@admin.register(Usuario)
+class UsuarioAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo Usuario.
+    """
+    list_display = ['id', 'username', 'nombre', 'email', 'saldo', 'giros_disponibles', 'fecha_registro']
+    search_fields = ['username', 'nombre', 'email']
+    ordering = ['-fecha_registro']
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "nombre", "racha_actual", "ultima_racha"]
@@ -74,3 +88,85 @@ class HistorialPrecioAdmin(admin.ModelAdmin):
 class ResolucionAdmin(admin.ModelAdmin):
     list_display = ["id", "mercado", "opcion_ganadora", "fecha"]
     ordering = ["-fecha"]
+
+
+@admin.register(Perfil)
+class PerfilAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "usuario"]
+    search_fields = ["user__username", "usuario__nombre", "usuario__email"]
+
+
+
+# ============================================================================
+# ADMINISTRACIÓN DE COLECCIONABLES Y RULETA
+# ============================================================================
+
+
+@admin.register(Coleccionable)
+class ColeccionableAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo Coleccionable.
+    """
+    list_display = ['id', 'nombre', 'rareza', 'fecha_creacion', 'total_propietarios']
+    list_filter = ['rareza', 'fecha_creacion']
+    search_fields = ['nombre', 'descripcion']
+    ordering = ['rareza', 'nombre']
+
+
+@admin.register(UsuarioColeccionable)
+class UsuarioColeccionableAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo UsuarioColeccionable.
+    """
+    list_display = ['id', 'usuario', 'coleccionable', 'cantidad', 'fecha_obtencion']
+    list_filter = ['coleccionable__rareza', 'fecha_obtencion']
+    search_fields = ['usuario__nombre', 'coleccionable__nombre']
+    ordering = ['-fecha_obtencion']
+    raw_id_fields = ['usuario', 'coleccionable']
+
+
+@admin.register(RuletaProbabilidad)
+class RuletaProbabilidadAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo RuletaProbabilidad.
+    """
+    list_display = ['coleccionable', 'probabilidad', 'activo']
+    list_filter = ['activo', 'coleccionable__rareza']
+    search_fields = ['coleccionable__nombre']
+    ordering = ['-probabilidad']
+
+
+@admin.register(ConfiguracionRuleta)
+class ConfiguracionRuletaAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo ConfiguracionRuleta.
+    """
+    list_display = ['id', 'costo_giro', 'activa', 'fecha_actualizacion']
+    
+    def has_add_permission(self, request):
+        # Solo permitir un registro de configuración
+        return not ConfiguracionRuleta.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # No permitir eliminar la configuración
+        return False
+
+
+@admin.register(HistorialRuleta)
+class HistorialRuletaAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo HistorialRuleta.
+    """
+    list_display = ['id', 'usuario', 'coleccionable_obtenido', 'costo', 'fecha']
+    list_filter = ['fecha', 'coleccionable_obtenido__rareza']
+    search_fields = ['usuario__nombre', 'coleccionable_obtenido__nombre']
+    ordering = ['-fecha']
+    raw_id_fields = ['usuario', 'coleccionable_obtenido']
+    
+    def has_add_permission(self, request):
+        # No permitir crear registros manualmente
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        # No permitir editar registros históricos
+        return False

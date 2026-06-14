@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Coleccionables - Polybuxef{% endblock %}
+
+{% block extra_head %}
+<style>
+  .coleccionables-header {
+    text-align: center;
+    padding: 2rem 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+  }
+
+  .coleccionables-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .progress-container {
+    margin: 1.5rem 0;
+  }
+
+  .progress-bar-large {
+    height: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .rareza-section {
+    margin-bottom: 3rem;
+  }
+
+  .rareza-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .rareza-icon {
+    font-size: 1.5rem;
+  }
+
+  .rareza-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .rareza-count {
+    margin-left: auto;
+    background: var(--surface2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .coleccionables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .coleccionable-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .coleccionable-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  }
+
+  .coleccionable-imagen {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .coleccionable-nombre {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .coleccionable-descripcion {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+
+  .coleccionable-cantidad {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .coleccionable-fecha {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  /* Colores por rareza */
+  .rareza-comun { border-color: #95a5a6; }
+  .rareza-comun .rareza-title { color: #95a5a6; }
+  .rareza-raro { border-color: #3498db; }
+  .rareza-raro .rareza-title { color: #3498db; }
+  .rareza-epico { border-color: #9b59b6; }
+  .rareza-epico .rareza-title { color: #9b59b6; }
+  .rareza-legendario { border-color: #f39c12; }
+  .rareza-legendario .rareza-title { color: #f39c12; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coleccionables-header">
+  <h1>🎨 Mis Coleccionables</h1>
+  <p style="color: var(--muted); margin-top: 0.5rem;">Colección personal de {{ usuario.nombre }}</p>
+
+  <div class="progress-container">
+    <div class="progress-bar-large">
+      <div class="progress-fill" style="width: {{ porcentaje }}%;">
+        {{ porcentaje|floatformat:1 }}% Completado
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_coleccionables }}</div>
+      <div class="stat-label">Obtenidos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_posibles }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.total_giros }}</div>
+      <div class="stat-label">Giros Totales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.giros_disponibles }}</div>
+      <div class="stat-label">Giros Disponibles</div>
+    </div>
+  </div>
+</div>
+
+<!-- Coleccionables por rareza -->
+
+<!-- LEGENDARIOS -->
+<div class="rareza-section rareza-legendario">
+  <div class="rareza-header">
+    <span class="rareza-icon">🟡</span>
+    <h2 class="rareza-title">Legendarios</h2>
+    <span class="rareza-count">
+      {{ stats.rareza_stats.legendario.obtenidos }} / {{ stats.rareza_stats.legendario.total }}
+    </span>
+  </div>
+  
+  {% if coleccionables_por_rareza.legendario %}
+    <div class="coleccionables-grid">
+      {% for item in coleccionables_por_rareza.legendario %}
+        <div class="coleccionable-card">
+          <div class="coleccionable-imagen">
+            {% if item.coleccionable.imagen_url %}
+              <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width: 80px; height: 80px; object-fit: contain;">
+            {% else %}
+              🏆
+            {% endif %}
+          </div>
+          <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+          <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+          <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+          <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔒</div>
+      <p>No tienes coleccionables legendarios aún</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ÉPICOS -->
+<div class="rareza-section rareza-epico">
+  <div class="rareza-header">
+    <span class="rareza-icon">🟣</span>
+    <h2 class="rareza-title">Épicos</h2>
+    <span class="rareza-count">
+      {{ stats.rareza_stats.epico.obtenidos }} / {{ stats.rareza_stats.epico.total }}
+    </span>
+  </div>
+  
+  {% if coleccionables_por_rareza.epico %}
+    <div class="coleccionables-grid">
+      {% for item in coleccionables_por_rareza.epico %}
+        <div class="coleccionable-card">
+          <div class="coleccionable-imagen">
+            {% if item.coleccionable.imagen_url %}
+              <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width: 80px; height: 80px; object-fit: contain;">
+            {% else %}
+              💎
+            {% endif %}
+          </div>
+          <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+          <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+          <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+          <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔒</div>
+      <p>No tienes coleccionables épicos aún</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- RAROS -->
+<div class="rareza-section rareza-raro">
+  <div class="rareza-header">
+    <span class="rareza-icon">🔵</span>
+    <h2 class="rareza-title">Raros</h2>
+    <span class="rareza-count">
+      {{ stats.rareza_stats.raro.obtenidos }} / {{ stats.rareza_stats.raro.total }}
+    </span>
+  </div>
+  
+  {% if coleccionables_por_rareza.raro %}
+    <div class="coleccionables-grid">
+      {% for item in coleccionables_por_rareza.raro %}
+        <div class="coleccionable-card">
+          <div class="coleccionable-imagen">
+            {% if item.coleccionable.imagen_url %}
+              <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width: 80px; height: 80px; object-fit: contain;">
+            {% else %}
+              ⭐
+            {% endif %}
+          </div>
+          <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+          <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+          <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+          <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔒</div>
+      <p>No tienes coleccionables raros aún</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- COMUNES -->
+<div class="rareza-section rareza-comun">
+  <div class="rareza-header">
+    <span class="rareza-icon">⚪</span>
+    <h2 class="rareza-title">Comunes</h2>
+    <span class="rareza-count">
+      {{ stats.rareza_stats.comun.obtenidos }} / {{ stats.rareza_stats.comun.total }}
+    </span>
+  </div>
+  
+  {% if coleccionables_por_rareza.comun %}
+    <div class="coleccionables-grid">
+      {% for item in coleccionables_por_rareza.comun %}
+        <div class="coleccionable-card">
+          <div class="coleccionable-imagen">
+            {% if item.coleccionable.imagen_url %}
+              <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width: 80px; height: 80px; object-fit: contain;">
+            {% else %}
+              📦
+            {% endif %}
+          </div>
+          <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+          <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+          <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+          <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔒</div>
+      <p>No tienes coleccionables comunes aún</p>
+      <p style="margin-top: 0.5rem; font-size: 0.85rem;">¡Gira la ruleta para empezar tu colección!</p>
+    </div>
+  {% endif %}
+</div>
+
+{% if total_coleccionables == 0 %}
+<div style="text-align: center; margin: 3rem 0;">
+  <button onclick="abrirRuleta()" class="btn-ruleta" style="padding: 1rem 2rem; font-size: 1.1rem;">
+    🎰 Empezar a Coleccionar
+  </button>
+</div>
+{% endif %}
+
+{% endblock %}
