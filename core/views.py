@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from .forms import RegistroForm
-from .models import HistorialPrecio, Mercado, Opcion, Profile, TransaccionShare
+from .models import HistorialPrecio, Mercado, Opcion, Perfil, TransaccionShare, Usuario
 from .services import (
     canjear_racha_diaria,
     comprar,
@@ -18,29 +18,39 @@ from .services import (
     resolver_mercado,
     vender,
 )
-from .services.wallet import Wallet
 
 
-def _get_or_create_profile(user):
-    """Obtiene o crea el Profile para un usuario autenticado."""
-    profile, created = Profile.objects.get_or_create(
-        user=user,
-        defaults={
-            'nombre': user.get_full_name() or user.username,
-        }
-    )
-    if created:
-        wallet = Wallet(profile)
-        wallet.admin_grant_balance(Decimal("1000"), "Saldo inicial de bienvenida")
-    return profile
+def _get_perfil_usuario(user):
+    """
+    Obtiene el Perfil y Usuario asociados a un User de Django.
+    Si no existe el Usuario, retorna None.
+    """
+    try:
+        perfil = Perfil.objects.select_related('usuario').get(user=user)
+        return perfil
+    except Perfil.DoesNotExist:
+        return None
 
 
 # --- Páginas HTML ---
 
 def home(request):
+    """
+    Vista principal que muestra mercados y estado de racha.
+    """
     if request.user.is_authenticated:
-        profile = _get_or_create_profile(request.user)
-        streak = obtener_estado_racha(request.user.id, profile=profile)
+        perfil = _get_perfil_usuario(request.user)
+        if perfil:
+            streak = obtener_estado_racha(perfil.usuario.id)
+        else:
+            streak = {
+                "racha_actual": 0,
+                "recompensa_hoy": 0,
+                "recompensa_siguiente": 100,
+                "ya_cobrada_hoy": False,
+                "puede_canjear": False,
+                "estado_racha": "Error al cargar racha",
+            }
     else:
         streak = {
             "racha_actual": 0,
@@ -50,7 +60,6 @@ def home(request):
             "puede_canjear": False,
             "estado_racha": "Inicia sesión para cobrar tu racha diaria",
         }
-    streak.pop("profile", None)
     return render(request, 'home.html', {**streak})
 
 
@@ -59,7 +68,11 @@ def mercado_detalle(request, mercado_id):
 
 
 def portafolio_page(request, id_usuario):
-    # id_usuario ahora es user.id
+    """
+    Renderiza la página de portafolio.
+    Args:
+        id_usuario: ID del Usuario (core.models.Usuario), no del Django User
+    """
     return render(request, 'portafolio.html', {'id_usuario': id_usuario})
 
 
@@ -132,31 +145,65 @@ def historial_precios_api(request, mercado_id):
 
 @require_GET
 def usuario_api(request, id_usuario):
-    # id_usuario es user.id — el frontend lo envía como USUARIO_ID
+    """
+    Devuelve información del Usuario.
+    Args:
+        id_usuario: ID del Usuario (core.models.Usuario)
+    """
     try:
-        profile = Profile.objects.select_related('user').get(user_id=id_usuario)
-    except Profile.DoesNotExist:
+        usuario = Usuario.objects.get(id=id_usuario)
+    except Usuario.DoesNotExist:
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    wallet = Wallet(profile)
+    
     return JsonResponse({
-        'id': profile.user_id,
-        'nombre': profile.nombre,
-        'saldo': float(wallet.get_balance()),   # ← ledger, no campo directo
-        'racha_actual': profile.racha_actual,
-        'ultima_racha': profile.ultima_racha.isoformat() if profile.ultima_racha else None,
+        'id': usuario.id,
+        'username': usuario.username,
+        'nombre': usuario.nombre,
+        'saldo': float(usuario.saldo),
+        'giros_disponibles': usuario.giros_disponibles,
+        'fecha_registro': usuario.fecha_registro.isoformat(),
     })
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def canjear_racha_view(request):
+    """
+    Endpoint para canjear la racha diaria del usuario.
+    """
+    perfil = _get_perfil_usuario(request.user)
+    if not perfil:
+        return JsonResponse({'error': 'Perfil no encontrado'}, status=404)
+    
+    try:
+        resultado = canjear_racha_diaria(perfil.usuario.id)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'ok': True, **resultado})
 
 
 @require_GET
 def portafolio(request, id_usuario):
-    # id_usuario es user.id
+    """
+    Devuelve el portafolio de un Usuario.
+    Args:
+        id_usuario: ID del Usuario (core.models.Usuario)
+    """
     try:
+        # Verificar que el usuario existe
+        usuario = Usuario.objects.get(id=id_usuario)
+        
+        # Obtener transacciones del usuario
         transacciones = (
             TransaccionShare.objects
-            .filter(profile__user_id=id_usuario)
+            .filter(usuario=usuario)
             .select_related('opcion__mercado')
             .order_by('opcion_id', 'fecha')
         )
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -191,47 +238,50 @@ def portafolio(request, id_usuario):
 
 @require_GET
 def historial_usuario_api(request, id_usuario):
-    transacciones = (
-        TransaccionShare.objects
-        .filter(profile__user_id=id_usuario)
-        .select_related('opcion__mercado')
-        .order_by('-fecha')[:50]
-    )
-    data = [
-        {
-            'tipo': t.tipo,
-            'opcion': t.opcion.nombre,
-            'mercado': t.opcion.mercado.titulo,
-            'mercado_id': t.opcion.mercado_id,
-            'shares': float(t.shares),
-            'monto': float(t.monto),
-            'precio_unitario': float(t.precio_unitario),
-            'fecha': t.fecha.isoformat(),
-        }
-        for t in transacciones
-    ]
-    return JsonResponse({'historial': data})
-
-
-@csrf_exempt
-@require_POST
-@login_required
-def canjear_racha_view(request):
+    """
+    Devuelve el historial de transacciones de un Usuario.
+    Args:
+        id_usuario: ID del Usuario (core.models.Usuario)
+    """
     try:
-        _get_or_create_profile(request.user)
-        resultado = canjear_racha_diaria(request.user.id)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-    resultado.pop('profile', None)
-    return JsonResponse({'ok': True, **resultado})
+        usuario = Usuario.objects.get(id=id_usuario)
+        transacciones = (
+            TransaccionShare.objects
+            .filter(usuario=usuario)
+            .select_related('opcion__mercado')
+            .order_by('-fecha')[:50]
+        )
+        data = [
+            {
+                'tipo': t.tipo,
+                'opcion': t.opcion.nombre,
+                'mercado': t.opcion.mercado.titulo,
+                'mercado_id': t.opcion.mercado_id,
+                'shares': float(t.shares),
+                'monto': float(t.monto),
+                'precio_unitario': float(t.precio_unitario),
+                'fecha': t.fecha.isoformat(),
+            }
+            for t in transacciones
+        ]
+        return JsonResponse({'historial': data})
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+
+
+
 
 
 @csrf_exempt
 @require_POST
 def comprar_view(request):
+    """
+    Endpoint para comprar shares de una opción.
+    Body: {id_usuario, id_opcion, monto}
+    """
     try:
         body = json.loads(request.body)
-        id_usuario = int(body['id_usuario'])   # este es user.id
+        id_usuario = int(body['id_usuario'])
         id_opcion = int(body['id_opcion'])
         monto = float(body['monto'])
     except (KeyError, ValueError, json.JSONDecodeError) as e:
@@ -300,27 +350,41 @@ def redimir_view(request):
 
 
 def registro_view(request):
+    """
+    Vista para registrar un nuevo usuario.
+    Crea: User (Django) → Perfil → Usuario (con saldo inicial)
+    """
     if request.user.is_authenticated:
         return redirect('home')
+    
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
+                # Crear usuario de Django
                 user = form.save()
-                usuario = Usuario.objects.create(
-                    username=form.cleaned_data['username'],  # Agregado: usar el username del formulario
                 user.email = form.cleaned_data['email']
                 user.save(update_fields=['email'])
-                profile = Profile.objects.create(
-                    user=user,
+                
+                # Crear Usuario de la app con saldo inicial
+                usuario = Usuario.objects.create(
+                    username=form.cleaned_data['username'],
                     nombre=form.cleaned_data['nombre'],
+                    email=form.cleaned_data['email'],
+                    saldo=Decimal("1000")
                 )
-                wallet = Wallet(profile)
-                wallet.admin_grant_balance(Decimal("1000"), "Saldo inicial de bienvenida")
+                
+                # Crear Perfil intermedio
+                Perfil.objects.create(
+                    user=user,
+                    usuario=usuario
+                )
+            
             login(request, user)
             return redirect('home')
     else:
         form = RegistroForm()
+    
     return render(request, 'registration/registro.html', {'form': form})
 
 
@@ -347,14 +411,12 @@ def logout_view(request):
 
 @login_required
 def perfil_view(request):
-    profile = _get_or_create_profile(request.user)
-    wallet = Wallet(profile)
-    # Se pasa un objeto "usuario" con los mismos atributos que usaba perfil.html
-    # para no tocar el template
-    class UsuarioProxy:
-        nombre = profile.nombre
-        email = request.user.email
-        saldo = wallet.get_balance()
-        fecha_registro = request.user.date_joined
-
-    return render(request, 'perfil.html', {'usuario': UsuarioProxy()})
+    """
+    Vista para mostrar el perfil del usuario.
+    """
+    perfil = _get_perfil_usuario(request.user)
+    if not perfil:
+        return JsonResponse({'error': 'Perfil no encontrado'}, status=404)
+    
+    usuario = perfil.usuario
+    return render(request, 'perfil.html', {'usuario': usuario})
