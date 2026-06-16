@@ -4,34 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Polybuxef{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d14;
-      --surface: #16161f;
-      --surface2: #1e1e2e;
-      --border: #2a2a3d;
-      --accent: #6c5ce7;
-      --accent2: #00cec9;
-      --yes: #00b894;
-      --no: #d63031;
-      --text: #e8e8f0;
-      --muted: #888899;
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #7c6ff7;
+      --accent2: #00d4cf;
+      --yes: #00c896;
+      --no: #e03535;
+      --text: #ffffff;
+      --muted: #666666;
       --radius: 12px;
+      --radius-sm: 8px;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #fff;
+      color: #000;
+      font-family: 'Manrope', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BANNER ── */
+    .announce-bar {
+      background: #fff;
+      color: #000;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .announce-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.25rem;
+      color: #000;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .announce-bar a:hover { text-decoration: underline; }
+
+    /* ── SHARED DARK SURFACE (for inner pages) ── */
+    .inner-page {
+      background: #0a0a0a;
+      color: #fff;
       min-height: 100vh;
     }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
+    .inner-page-nav {
+      background: #111;
+      border-bottom: 1px solid #222;
+      padding: 0 2.5rem;
       height: 60px;
       display: flex;
       align-items: center;
@@ -41,80 +75,76 @@
       z-index: 100;
     }
 
-    .nav-logo {
-      font-size: 1.3rem;
+    .inner-nav-logo {
+      font-size: 1.1rem;
       font-weight: 700;
-      color: var(--accent);
+      color: #fff;
       text-decoration: none;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
 
-    .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+    .inner-nav-links { display: flex; gap: 0.25rem; }
 
-    .nav-links a {
-      color: var(--muted);
+    .inner-nav-links a {
+      color: #888;
       text-decoration: none;
-      padding: 0.4rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      transition: all 0.15s;
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.15s;
     }
 
-    .nav-links a:hover { color: var(--text); background: var(--surface2); }
-    .nav-links a.active { color: var(--text); background: var(--surface2); }
+    .inner-nav-links a:hover,
+    .inner-nav-links a.active { color: #fff; }
 
-    .nav-user {
+    .inner-nav-right {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
     }
 
     .balance-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.3rem 0.8rem;
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 1rem;
       color: var(--yes);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.85rem;
     }
 
-    .nav-user-name {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    /* ── INNER PAGE CONTENT ── */
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2.5rem 4rem; }
 
     .page-title {
       font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 1.5rem;
+      color: #fff;
     }
 
-    /* Cards */
+    /* ── CARDS ── */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #141414;
+      border: 1px solid #2a2a2a;
       border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      transition: border-color 0.15s;
+      padding: 1.4rem 1.6rem;
+      transition: border-color 0.2s;
     }
 
-    .card:hover { border-color: var(--accent); }
+    .card:hover { border-color: #333; }
 
-    /* Buttons */
+    /* ── BUTTONS ── */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.4rem;
-      padding: 0.55rem 1.2rem;
-      border-radius: 8px;
+      padding: 0.65rem 1.4rem;
+      border-radius: 6px;
       border: none;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       font-weight: 600;
       cursor: pointer;
       transition: opacity 0.15s, transform 0.1s;
@@ -122,77 +152,77 @@
     }
 
     .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn:hover { opacity: 0.88; }
 
-    .btn-yes { background: var(--yes); color: #fff; }
+    .btn-yes { background: var(--yes); color: #000; }
     .btn-no  { background: var(--no);  color: #fff; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+    .btn-primary { background: #fff; color: #000; }
+    .btn-secondary { background: #1c1c1c; color: #fff; border: 1px solid #333; }
+    .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.8rem; }
 
-    .btn:hover { opacity: 0.85; }
-
-    /* Badge */
+    /* ── BADGE ── */
     .badge {
       display: inline-block;
-      padding: 0.2rem 0.6rem;
+      padding: 0.2rem 0.65rem;
       border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .badge-open    { background: rgba(0,184,148,.15); color: var(--yes); }
-    .badge-closed  { background: rgba(214,48,49,.15);  color: var(--no); }
-    .badge-resuelto { background: rgba(108,92,231,.15); color: var(--accent); }
+    .badge-open     { background: rgba(0,200,150,.12); color: var(--yes); border: 1px solid rgba(0,200,150,.2); }
+    .badge-closed   { background: rgba(224,53,53,.12);  color: var(--no);  border: 1px solid rgba(224,53,53,.2); }
+    .badge-resuelto { background: rgba(124,111,247,.12); color: var(--accent); border: 1px solid rgba(124,111,247,.2); }
 
-    /* Progress bar */
+    /* ── PROB BAR ── */
     .prob-bar {
-      height: 6px;
-      border-radius: 3px;
-      background: var(--border);
+      height: 4px;
+      border-radius: 2px;
+      background: #2a2a2a;
       overflow: hidden;
-      margin: 0.5rem 0;
+      margin: 0.4rem 0;
     }
 
     .prob-bar-fill {
       height: 100%;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--yes), var(--accent2));
+      border-radius: 2px;
+      background: var(--yes);
       transition: width 0.4s ease;
     }
 
-    /* Toast */
+    /* ── TOAST ── */
     #toast {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
+      background: #1c1c1c;
+      border: 1px solid #333;
       border-radius: var(--radius);
-      padding: 0.8rem 1.2rem;
-      font-size: 0.9rem;
+      padding: 0.9rem 1.3rem;
+      font-size: 0.875rem;
       z-index: 9999;
       opacity: 0;
       transform: translateY(10px);
       transition: all 0.25s;
       pointer-events: none;
       max-width: 320px;
+      color: #fff;
     }
 
     #toast.show { opacity: 1; transform: translateY(0); }
     #toast.ok   { border-color: var(--yes); color: var(--yes); }
     #toast.err  { border-color: var(--no);  color: var(--no); }
 
-    /* Input */
+    /* ── INPUT ── */
     .input-field {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: var(--radius-sm);
+      color: #fff;
       font-size: 0.95rem;
-      padding: 0.55rem 0.8rem;
+      padding: 0.6rem 0.9rem;
       width: 100%;
       outline: none;
       transition: border-color 0.15s;
@@ -200,11 +230,10 @@
 
     .input-field:focus { border-color: var(--accent); }
 
-    label { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.3rem; display: block; }
+    label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; display: block; font-weight: 500; }
+    .form-group { margin-bottom: 1rem; }
 
-    .form-group { margin-bottom: 0.9rem; }
-
-    /* Botón de Ruleta */
+    /* ── RULETA (botón + modal, usado por las navs de todas las páginas) ── */
     .btn-ruleta {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -223,11 +252,8 @@
       box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-ruleta:active {
-      transform: translateY(0);
-    }
+    .btn-ruleta:active { transform: translateY(0); }
 
-    /* Modal Ruleta */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.85);
@@ -238,13 +264,14 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal-ruleta {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #141414;
+      border: 1px solid #2a2a2a;
       border-radius: 16px;
       width: 90%; max-width: 500px;
       position: relative;
       animation: slideUp 0.3s ease;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      color: #fff;
     }
     @keyframes slideUp {
       from { transform: translateY(50px); opacity: 0; }
@@ -253,7 +280,7 @@
 
     .modal-header {
       padding: 1.5rem;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #2a2a2a;
       text-align: center;
       position: relative;
     }
@@ -263,17 +290,17 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; margin-bottom: .5rem;
     }
-    .modal-header p { color: var(--muted); font-size: .9rem; }
+    .modal-header p { color: #666; font-size: .9rem; }
 
     .btn-cerrar {
       position: absolute; top: 1rem; right: 1rem;
-      background: var(--surface2); border: 1px solid var(--border);
+      background: #1c1c1c; border: 1px solid #333;
       width: 32px; height: 32px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all .2s;
-      color: var(--muted); font-size: 1.2rem;
+      color: #666; font-size: 1.2rem;
     }
-    .btn-cerrar:hover { background: var(--border); color: var(--text); }
+    .btn-cerrar:hover { background: #2a2a2a; color: #fff; }
 
     .modal-body { padding: 2rem; }
 
@@ -283,18 +310,18 @@
     }
     .ruleta-wheel {
       width: 100%; height: 100%; border-radius: 50%;
-      border: 8px solid var(--border);
+      border: 8px solid #2a2a2a;
       position: relative; overflow: hidden;
-      box-shadow: 0 0 0 4px var(--surface), 0 8px 24px rgba(0,0,0,.4);
+      box-shadow: 0 0 0 4px #141414, 0 8px 24px rgba(0,0,0,.4);
     }
     .ruleta-center {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%,-50%);
       width: 55px; height: 55px;
-      background: var(--surface); border: 4px solid var(--border);
+      background: #141414; border: 4px solid #2a2a2a;
       border-radius: 50%; display: flex; align-items: center;
       justify-content: center; font-size: 1.3rem; z-index: 10;
-      font-weight: 700; color: var(--text);
+      font-weight: 700; color: #fff;
     }
     .ruleta-pointer {
       position: absolute; top: -5px; left: 50%;
@@ -309,8 +336,8 @@
 
     .info-giros {
       text-align: center; margin-bottom: 1.5rem; padding: 1rem;
-      background: var(--surface2); border-radius: 12px;
-      border: 1px solid var(--border);
+      background: #1c1c1c; border-radius: 12px;
+      border: 1px solid #2a2a2a;
     }
     .info-giros p { margin: .25rem 0; font-size: .9rem; }
     .info-giros .saldo { color: var(--yes); font-weight: 600; }
@@ -351,32 +378,54 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-<nav>
-  <a href="/" class="nav-logo">Polybuxef</a>
-  <div class="nav-links">
-    <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
-    {% if user.is_authenticated and user.perfil %}
-    <a href="/portafolio/{{ user.perfil.usuario.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
-    <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Mis Coleccionables</a>
-    {% endif %}
-  </div>
-  <div class="nav-user">
-    {% if user.is_authenticated and user.perfil %}
-      <button onclick="abrirRuleta()" class="btn-ruleta">
-        Juega a la Ruleta
-      </button>
-      <a href="{% url 'perfil' %}" style="color:var(--muted); text-decoration:none;">{{ user.perfil.usuario.username }}</a>
-      <span class="balance-chip" id="nav-balance">$ —</span>
-    {% else %}
+{% block body %}
+
+<!-- Announcement bar -->
+<div class="announce-bar">
+  Predice eventos del mundo real y opera con probabilidades en tiempo real &nbsp;·&nbsp;
+  {% if user.is_authenticated and user.perfil %}
+  <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Ver mi portafolio
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% else %}
+  <a href="{% url 'login' %}">Inicia sesión
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% endif %}
+</div>
+
+{% block page_content %}
+<!-- Inner page nav (dark) -->
+<div class="inner-page">
+  <nav class="inner-page-nav">
+    <div style="display:flex;align-items:center;gap:2rem;">
+      <a href="{% url 'home' %}" class="inner-nav-logo">polybuxef</a>
+      <div class="inner-nav-links">
+        <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+        {% if user.is_authenticated and user.perfil %}
+        <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Portafolio</a>
+        <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Coleccionables</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="inner-nav-right">
+      {% if user.is_authenticated and user.perfil %}
+      <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+      <a href="{% url 'perfil' %}" style="font-size:0.85rem;color:#888;text-decoration:none;">{{ user.perfil.usuario.username }}</a>
+      <span class="balance-chip nav-balance">$ —</span>
+      {% else %}
       <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Iniciar sesión</a>
       <a href="{% url 'registro' %}" class="btn btn-primary btn-sm">Registrarse</a>
-    {% endif %}
+      {% endif %}
+    </div>
+  </nav>
+  <div class="page-wrap">
+    {% block content %}{% endblock %}
   </div>
-</nav>
+</div>
+{% endblock %}
 
-<main>
-  {% block content %}{% endblock %}
-</main>
+{% endblock %}
 
 <div id="toast"></div>
 
@@ -392,28 +441,16 @@
   }
 
   async function fetchBalance() {
+    if (!USUARIO_ID) return;
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
       const d = await r.json();
-      document.getElementById('nav-balance').textContent = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      const bal = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      document.querySelectorAll('.nav-balance').forEach(el => el.textContent = bal);
     } catch {}
   }
 
   if (USUARIO_ID) fetchBalance();
-
-  // ============================================================
-  // SISTEMA DE RULETA
-  // ============================================================
-  let _girando = false;
-  let _girosDisponibles = 0;
-  let _costoGiro = 100;
-
-  const _rarezaAngulos = {
-    'comun':      [27, 135, 243, 351],
-    'raro':       [81, 297],
-    'epico':      [189],
-    'legendario': [333]
-  };
 
   function getCookie(name) {
     let cookieValue = null;
@@ -428,6 +465,20 @@
     }
     return cookieValue;
   }
+
+  // ============================================================
+  // SISTEMA DE RULETA
+  // ============================================================
+  let _girando = false;
+  let _girosDisponibles = 0;
+  let _costoGiro = 100;
+
+  const _rarezaAngulos = {
+    'comun':      [27, 135, 243, 351],
+    'raro':       [81, 297],
+    'epico':      [189],
+    'legendario': [333]
+  };
 
   function abrirRuleta() {
     fetch('/ruleta/modal/')
@@ -454,14 +505,11 @@
     const container = document.createElement('div');
     container.id = 'ruleta-modal-container';
 
-    // Construir conic-gradient dinámico desde los colores de rarezas de la BD
-    // Los segmentos reflejan las probabilidades reales de cada rareza
     const segmentos = [];
     let angulo = 0;
-    // Repetir colores para dar sensación de ruleta con múltiples secciones (8 segmentos fijos)
     const paletaColores = data.rarezas.map(r => r.color);
     const segSize = 360 / 8;
-    const orden = [0, 1, 0, 2, 0, 1, 3, 0]; // comun, raro, comun, epico, comun, raro, legendario, comun
+    const orden = [0, 1, 0, 2, 0, 1, 3, 0];
     orden.forEach(idx => {
       const color = paletaColores[idx] || '#95a5a6';
       segmentos.push(`${color} ${angulo}deg ${angulo + segSize}deg`);
@@ -476,9 +524,9 @@
     } else if (puedeComprar) {
       accionHTML = `<button class="btn-comprar" onclick="_comprarGiro()" id="btn-comprar">Comprar 1 Giro ($${data.costo_giro})</button>`;
     } else {
-      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(214,48,49,0.1);border-radius:12px;">
+      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(224,53,53,0.1);border-radius:12px;">
         <p style="margin:0;font-weight:600;">Saldo insuficiente</p>
-        <p style="margin:.5rem 0 0;font-size:.85rem;color:var(--muted);">Apuesta en eventos para ganar mas saldo</p>
+        <p style="margin:.5rem 0 0;font-size:.85rem;color:#666;">Apuesta en eventos para ganar mas saldo</p>
       </div>`;
     }
 
@@ -538,7 +586,6 @@
       const data = await resp.json();
       if (data.success) {
         _girosDisponibles = data.giros_disponibles;
-        // Reemplazar botón comprar por botón girar y girar automáticamente
         if (btn) {
           btn.outerHTML = `<button class="btn-girar" id="btn-girar" disabled>Girando...</button>`;
         }
@@ -616,7 +663,7 @@
           <div class="modal-body" style="text-align:center;">
             ${c.imagen_url ? `<img src="${c.imagen_url}" alt="${c.nombre}" style="width:100px;height:100px;object-fit:contain;margin:1rem 0;">` : `<div style="font-size:3rem;color:${color};margin:1rem 0;">★</div>`}
             <h3 style="margin:1rem 0;">${c.nombre}</h3>
-            <p style="color:var(--muted);margin-bottom:1rem;">${c.descripcion}</p>
+            <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
             ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
             <button class="btn btn-primary" style="width:100%;padding:.8rem;margin-top:1rem;" onclick="_cerrarResultado()">Continuar</button>
           </div>

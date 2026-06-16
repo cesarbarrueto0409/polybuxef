@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-m=8*k=d(gmdl&a=8g0-tlrzi6^bz9f@6pa820!tvnxqx_oa$mv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '172.18.107.88', 'polybuxef.giarf.cl']
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = ['https://polybuxef.giarf.cl']
 

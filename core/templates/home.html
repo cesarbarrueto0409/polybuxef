@@ -1,8 +1,317 @@
 {% extends "base.html" %}
-{% block title %}Mercados — Polybuxef{% endblock %}
+{% block title %}Polybuxef — Mercado de predicciones{% endblock %}
 
 {% block extra_head %}
 <style>
+  /* ── HERO CONTAINER (white bg visible as frame) ── */
+  .hero-container {
+    position: relative;
+    min-height: calc(100vh - 40px);
+    width: 100%;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── INNER DARK ROUNDED CARD ── */
+  .inner-card {
+    position: relative;
+    background-color: #000;
+    border-radius: 2.5rem;
+    margin: 0 1rem 1rem 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Vibrant multi-color glow */
+  .inner-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 75% at 80% 35%, rgba(230, 90, 0, 0.85) 0%, transparent 52%),
+      radial-gradient(ellipse 30% 45% at 90% 10%, rgba(255, 180, 0, 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse 35% 50% at 55% 80%, rgba(120, 40, 200, 0.45) 0%, transparent 55%),
+      radial-gradient(ellipse 25% 35% at 20% 60%, rgba(0, 180, 200, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Left gradient overlay for text readability */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .content-layer {
+    position: relative;
+    z-index: 10;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+    padding: 0 4rem;
+  }
+
+  /* ── NAV INSIDE DARK CARD ── */
+  .hero-nav {
+    position: fixed;
+    top: 38px;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 1.25rem 4rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-nav.scrolled {
+    top: 38px;
+    left: clamp(1rem, 18%, 320px);
+    right: clamp(1rem, 18%, 320px);
+    padding: 0.75rem 1.75rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  .hero-nav-spacer { height: 90px; }
+
+  .hero-nav-left {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .hero-nav-left a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+  }
+
+  .hero-nav-left a:hover { opacity: 1; }
+  .hero-nav-left a.active { opacity: 1; }
+
+  .hero-nav-logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    text-transform: lowercase;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .hero-nav-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+
+  .hero-nav-right a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+  }
+
+  .hero-nav-right a:hover { opacity: 1; }
+
+  .btn-nav-cta {
+    background: #fff;
+    color: #000;
+    padding: 0.5rem 1.4rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-nav-cta:hover { background: #e5e5e5; }
+
+  /* ── HERO MAIN CONTENT (pushed to bottom) ── */
+  .hero-main {
+    margin-top: auto;
+    margin-bottom: 7rem;
+    max-width: 560px;
+  }
+
+  .hero-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+  }
+
+  .hero-title {
+    font-size: clamp(2.6rem, 4.5vw, 3.8rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    color: #fff;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.65;
+    margin-bottom: 2.5rem;
+    max-width: 400px;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-hero-fill {
+    background: #fff;
+    color: #000;
+    padding: 1rem 2rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-hero-fill:hover { background: #e5e5e5; }
+
+  .btn-hero-outline {
+    background: transparent;
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn-hero-outline:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.5);
+  }
+
+  /* ── BOTTOM FEATURE BAR ── */
+  .hero-bottom-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+    padding-bottom: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .hero-bottom-bar .stat-item h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.2rem;
+  }
+
+  .hero-bottom-bar .stat-item p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* ── MARKETS SECTION (below the card) ── */
+  .markets-section {
+    background: #f7f5ff;
+    padding: 4rem 2.5rem 5rem;
+    max-width: 100%;
+  }
+
+  .markets-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .markets-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .markets-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: -0.3px;
+  }
+
+  .markets-count {
+    font-size: 0.82rem;
+    color: #999;
+  }
+
+  /* ── STREAK SUMMARY (racha diaria) ── */
+  .streak-summary {
+    margin: 0 auto 2rem;
+    max-width: 1200px;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .streak-stat dt {
+    font-size: .78rem;
+    color: #999;
+    margin-bottom: .25rem;
+  }
+
+  .streak-stat dd {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .streak-pill {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(0, 200, 150, 0.16);
+    color: var(--yes);
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
   .streak-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -15,8 +324,9 @@
 
   .streak-modal {
     width: min(100%, 520px);
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: #141414;
+    color: #fff;
+    border: 1px solid #2a2a2a;
     border-radius: 20px;
     padding: 2rem;
     text-align: center;
@@ -28,178 +338,642 @@
     margin-bottom: 0.8rem;
   }
 
-  .streak-pill {
-    display: inline-block;
-    padding: 0.35rem 0.8rem;
-    border-radius: 999px;
-    background: rgba(0, 184, 148, 0.16);
-    color: var(--yes);
-    font-size: 0.82rem;
-    font-weight: 700;
-    margin-bottom: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .streak-summary {
-    margin-bottom: 1.5rem;
+  /* ── MARKET CARDS GRID ── */
+  #markets-grid {
     display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    background: #ddd8f8;
+    border: 1px solid #ddd8f8;
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+
+  .market-card {
+    background: #fff;
+    padding: 1.6rem;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
   }
 
-  .streak-stat dt {
-    font-size: .78rem;
-    color: var(--muted);
-    margin-bottom: .25rem;
+  .market-card:hover { background: #fbfaff; }
+
+  .market-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  .streak-stat dd {
-    margin: 0;
-    font-size: 1.8rem;
+  .market-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #000;
+    flex: 1;
+  }
+
+  .market-card-date {
+    font-size: 0.72rem;
+    color: #999;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 0.1rem;
+  }
+
+  .market-card-desc {
+    font-size: 0.8rem;
+    color: #666;
+    line-height: 1.5;
+    margin-top: -0.4rem;
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .option-name {
+    font-size: 0.8rem;
+    color: #666;
+    min-width: 55px;
+  }
+
+  .option-bar-wrap { flex: 1; }
+
+  .prob-bar-light {
+    height: 4px;
+    border-radius: 2px;
+    background: #eee;
+    overflow: hidden;
+  }
+
+  .prob-bar-light-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .option-pct {
+    font-size: 0.8rem;
     font-weight: 700;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .market-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid #ede9ff;
+    margin-top: auto;
+  }
+
+  .liquidity-label { font-size: 0.72rem; color: #aaa; }
+
+  .card-actions { display: flex; gap: 0.4rem; }
+
+  .btn-card-yes {
+    background: #00c896;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .btn-card-no {
+    background: #e03535;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #999;
+    font-size: 0.9rem;
+    background: #fff;
+    grid-column: 1 / -1;
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<h1 class="page-title">Mercados abiertos</h1>
+{% block body %}
 
-<section class="card streak-summary">
-  <dl class="streak-stat">
-    <dt>Racha actual</dt>
-    <dd id="racha-actual">{{ racha_actual }} dias</dd>
-  </dl>
-  <dl class="streak-stat">
-    <dt>Premio de hoy</dt>
-    <dd id="racha-premio-hoy" style="color:var(--yes)">$ {{ recompensa_hoy|floatformat:0 }}</dd>
-  </dl>
-  <dl class="streak-stat">
-    <dt>Premio de manana</dt>
-    <dd id="racha-premio-siguiente">$ {{ recompensa_siguiente }}</dd>
-  </dl>
-  <dl class="streak-stat">
-    <dt>Estado</dt>
-    <dd id="racha-estado" style="font-size:.95rem;">{{ estado_racha }}</dd>
-  </dl>
+<!-- Announcement bar -->
+<div class="announce-bar">
+  Predice eventos del mundo real y opera con probabilidades en tiempo real &nbsp;·&nbsp;
+  {% if user.is_authenticated and user.perfil %}
+  <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Ver mi portafolio
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% else %}
+  <a href="{% url 'login' %}">Inicia sesión
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% endif %}
+</div>
+
+<!-- HERO -->
+<section class="hero-container">
+  <div class="inner-card">
+    <div class="hero-overlay"></div>
+
+    <div class="content-layer">
+
+      <div class="hero-nav-spacer"></div>
+
+      <!-- Nav inside the dark card -->
+      <nav class="hero-nav">
+        <div class="hero-nav-left">
+          <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+          {% if user.is_authenticated and user.perfil %}
+          <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Portafolio</a>
+          <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Coleccionables</a>
+          {% endif %}
+        </div>
+
+        <a href="{% url 'home' %}" class="hero-nav-logo">polybuxef</a>
+
+        <div class="hero-nav-right">
+          {% if user.is_authenticated and user.perfil %}
+          <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+          <a href="{% url 'perfil' %}" style="font-size:0.78rem;opacity:0.85;">{{ user.perfil.usuario.username }}</a>
+          <span class="nav-balance" style="font-size:0.78rem;font-weight:600;opacity:0.9;">$ —</span>
+          <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" class="btn-nav-cta">Mi portafolio</a>
+          {% else %}
+          <a href="{% url 'login' %}" style="opacity:0.85;">Iniciar sesión</a>
+          <a href="{% url 'registro' %}" class="btn-nav-cta">Registrarse</a>
+          {% endif %}
+        </div>
+      </nav>
+
+      <!-- Hero content pushed to bottom -->
+      <div class="hero-main">
+        <div class="hero-tag">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </svg>
+          <span>Mercados en tiempo real</span>
+        </div>
+
+        <h2 class="hero-title">
+          Predice lo que<br>va a pasar,<br>cada año.
+        </h2>
+
+        <p class="hero-subtitle">
+          Compra y vende posiciones en eventos reales. El precio refleja la probabilidad colectiva.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#mercados" class="btn-hero-fill">Ver mercados</a>
+          {% if user.is_authenticated and user.perfil %}
+          <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" class="btn-hero-outline">Mi portafolio</a>
+          {% else %}
+          <a href="{% url 'registro' %}" class="btn-hero-outline">Crear cuenta</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Bottom stats bar -->
+      <div class="hero-bottom-bar">
+        <div class="stat-item">
+          <h4 id="stat-mercados">— mercados</h4>
+          <p>Disponibles ahora</p>
+        </div>
+        <div class="stat-item">
+          <h4 id="stat-liquidez">—</h4>
+          <p>Liquidez total en mercados</p>
+        </div>
+        <div class="stat-item">
+          <h4 id="stat-saldo">—</h4>
+          <p>Tu saldo disponible</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </section>
 
-{% if puede_canjear %}
-<aside id="streak-modal" class="streak-modal-backdrop" aria-label="Premio diario disponible">
-  <section class="streak-modal">
-    <p class="streak-money">$$$</p>
-    <p class="streak-pill">Racha x{{ racha_actual }}</p>
-    <h2 style="font-size:2rem;line-height:1.05;margin-bottom:.7rem;">Tu premio diario esta listo</h2>
-    <p style="color:var(--muted);font-size:1rem;margin-bottom:1rem;">Hoy puedes cobrar tu racha y seguir apostando con mas saldo.</p>
-    <p style="font-size:3rem;font-weight:800;color:var(--yes);margin-bottom:1.2rem;">+ ${{ recompensa_hoy|floatformat:0 }}</p>
-    <button id="claim-streak-btn" onclick="claimStreak(this)" class="btn btn-yes" style="width:100%;padding:.9rem;font-size:1rem;">Canjear racha</button>
-  </section>
-</aside>
-{% endif %}
+<!-- MARKETS SECTION -->
+<section class="markets-section" id="mercados">
+  <div class="markets-inner">
 
-<div id="markets-grid" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));">
-  <p style="color:var(--muted)">Cargando mercados...</p>
-</div>
-{% endblock %}
+    {% if user.is_authenticated and user.perfil %}
+    <section class="card streak-summary">
+      <dl class="streak-stat">
+        <dt>Racha actual</dt>
+        <dd id="racha-actual">{{ racha_actual }} dias</dd>
+      </dl>
+      <dl class="streak-stat">
+        <dt>Premio de hoy</dt>
+        <dd id="racha-premio-hoy" style="color:var(--yes)">$ {{ recompensa_hoy|floatformat:0 }}</dd>
+      </dl>
+      <dl class="streak-stat">
+        <dt>Premio de manana</dt>
+        <dd id="racha-premio-siguiente">$ {{ recompensa_siguiente }}</dd>
+      </dl>
+      <dl class="streak-stat">
+        <dt>Estado</dt>
+        <dd id="racha-estado" style="font-size:.95rem;">{{ estado_racha }}</dd>
+      </dl>
+    </section>
 
-{% block extra_js %}
+    {% if puede_canjear %}
+    <aside id="streak-modal" class="streak-modal-backdrop" aria-label="Premio diario disponible">
+      <section class="streak-modal">
+        <p class="streak-money">$$$</p>
+        <p class="streak-pill">Racha x{{ racha_actual }}</p>
+        <h2 style="font-size:2rem;line-height:1.05;margin-bottom:.7rem;">Tu premio diario esta listo</h2>
+        <p style="color:#999;font-size:1rem;margin-bottom:1rem;">Hoy puedes cobrar tu racha y seguir apostando con mas saldo.</p>
+        <p style="font-size:3rem;font-weight:800;color:var(--yes);margin-bottom:1.2rem;">+ ${{ recompensa_hoy|floatformat:0 }}</p>
+        <button id="claim-streak-btn" onclick="claimStreak(this)" class="btn btn-yes" style="width:100%;padding:.9rem;font-size:1rem;">Canjear racha</button>
+      </section>
+    </aside>
+    {% endif %}
+    {% endif %}
+
+    <div class="markets-header">
+      <span class="markets-title">Mercados abiertos</span>
+      <span class="markets-count" id="market-count">Cargando...</span>
+    </div>
+
+    <div id="markets-grid">
+      <div class="empty-state">Cargando mercados...</div>
+    </div>
+  </div>
+</section>
+
+<div id="toast"></div>
+
 <script>
-function formatMoney(value) {
-  return Number(value).toLocaleString('es-CL');
-}
+  const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
 
-function updateStreakUI(data) {
-  document.getElementById('racha-actual').textContent = `${data.racha_actual} dias`;
-  document.getElementById('racha-premio-hoy').textContent = `$ ${formatMoney(data.recompensa_hoy)}`;
-  document.getElementById('racha-premio-siguiente').textContent = `$ ${formatMoney(data.recompensa_siguiente)}`;
-  document.getElementById('racha-estado').textContent = data.estado_racha;
-}
-
-async function claimStreak(btn) {
-  btn.disabled = true;
-  btn.textContent = 'Canjeando...';
-
-  try {
-    const r = await fetch('/api/racha/canjear/', {method: 'POST'});
-    const data = await r.json();
-
-    if (!r.ok || !data.ok) {
-      throw new Error(data.error || 'No se pudo canjear la racha');
-    }
-
-    updateStreakUI(data);
-    document.getElementById('streak-modal')?.remove();
-    fetchBalance();
-    toast(`Cobraste $${formatMoney(data.recompensa_cobrada)} por tu racha`, 'ok');
-  } catch (e) {
-    toast(e.message || 'Error canjeando racha', 'err');
-    btn.disabled = false;
-    btn.textContent = 'Canjear racha';
+  function toast(msg, type = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => el.className = '', 3000);
   }
-}
 
-async function loadMarkets() {
-  const grid = document.getElementById('markets-grid');
-  try {
-    const r = await fetch('/mercados/');
-    const data = await r.json();
-    const mercados = data.mercados;
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      for (const cookie of document.cookie.split(';')) {
+        const c = cookie.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 
-    if (!mercados.length) {
-      grid.innerHTML = '<p style="color:var(--muted)">No hay mercados abiertos.</p>';
-      return;
+  async function fetchBalance() {
+    if (!USUARIO_ID) return;
+    try {
+      const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
+      const d = await r.json();
+      const bal = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      document.querySelectorAll('.nav-balance').forEach(el => el.textContent = bal);
+      document.getElementById('stat-saldo').textContent = '$' + parseFloat(d.saldo).toLocaleString('es-CL', {maximumFractionDigits: 0});
+    } catch {}
+  }
+
+  function formatMoney(value) {
+    return Number(value).toLocaleString('es-CL');
+  }
+
+  function updateStreakUI(data) {
+    document.getElementById('racha-actual').textContent = `${data.racha_actual} dias`;
+    document.getElementById('racha-premio-hoy').textContent = `$ ${formatMoney(data.recompensa_hoy)}`;
+    document.getElementById('racha-premio-siguiente').textContent = `$ ${formatMoney(data.recompensa_siguiente)}`;
+    document.getElementById('racha-estado').textContent = data.estado_racha;
+  }
+
+  async function claimStreak(btn) {
+    btn.disabled = true;
+    btn.textContent = 'Canjeando...';
+
+    try {
+      const r = await fetch('/api/racha/canjear/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      });
+      const data = await r.json();
+
+      if (!r.ok || !data.ok) {
+        throw new Error(data.error || 'No se pudo canjear la racha');
+      }
+
+      updateStreakUI(data);
+      document.getElementById('streak-modal')?.remove();
+      fetchBalance();
+      toast(`Cobraste $${formatMoney(data.recompensa_cobrada)} por tu racha`, 'ok');
+    } catch (e) {
+      toast(e.message || 'Error canjeando racha', 'err');
+      btn.disabled = false;
+      btn.textContent = 'Canjear racha';
+    }
+  }
+
+  async function loadMarkets() {
+    const grid = document.getElementById('markets-grid');
+    try {
+      const r = await fetch('/mercados/');
+      const data = await r.json();
+      const mercados = data.mercados;
+
+      const totalLiquidez = mercados.reduce((s, m) => s + parseFloat(m.liquidez_total || 0), 0);
+      document.getElementById('stat-mercados').textContent = `${mercados.length} mercados`;
+      document.getElementById('stat-liquidez').textContent = '$' + totalLiquidez.toLocaleString('es-CL', {maximumFractionDigits: 0});
+      document.getElementById('market-count').textContent = `${mercados.length} activos`;
+
+      if (!mercados.length) {
+        grid.innerHTML = '<div class="empty-state">No hay mercados abiertos.</div>';
+        return;
+      }
+
+      grid.innerHTML = mercados.map(m => {
+        const op = m.opciones;
+        const cierre = new Date(m.fecha_cierre).toLocaleDateString('es-CL');
+
+        const optionRows = [op[0], op[1]].filter(Boolean).map((o, i) => {
+          const pct = (o.precio * 100).toFixed(1);
+          const color = i === 0 ? '#00a87a' : '#c82020';
+          return `
+            <div class="option-row">
+              <span class="option-name">${o.nombre}</span>
+              <div class="option-bar-wrap">
+                <div class="prob-bar-light">
+                  <div class="prob-bar-light-fill" style="width:${pct}%;background:${color}"></div>
+                </div>
+              </div>
+              <span class="option-pct" style="color:${color}">${pct}%</span>
+            </div>`;
+        }).join('');
+
+        return `
+        <a href="/mercado/${m.id}/" class="market-card">
+          <div class="market-card-top">
+            <h3 class="market-card-title">${m.titulo}</h3>
+            <span class="market-card-date">Cierra ${cierre}</span>
+          </div>
+          ${m.descripcion ? `<p class="market-card-desc">${m.descripcion}</p>` : ''}
+          <div>${optionRows}</div>
+          <div class="market-card-footer">
+            <span class="liquidity-label">Liquidez: $${parseFloat(m.liquidez_total).toLocaleString('es-CL')}</span>
+            <div class="card-actions">
+              ${op[0] ? `<span class="btn-card-yes">${op[0].nombre}</span>` : ''}
+              ${op[1] ? `<span class="btn-card-no">${op[1].nombre}</span>` : ''}
+            </div>
+          </div>
+        </a>`;
+      }).join('');
+    } catch(e) {
+      grid.innerHTML = `<div class="empty-state" style="color:#e03535">Error cargando mercados.</div>`;
+    }
+  }
+
+  // ============================================================
+  // SISTEMA DE RULETA
+  // ============================================================
+  let _girando = false;
+  let _girosDisponibles = 0;
+  let _costoGiro = 100;
+
+  const _rarezaAngulos = {
+    'comun':      [27, 135, 243, 351],
+    'raro':       [81, 297],
+    'epico':      [189],
+    'legendario': [333]
+  };
+
+  function abrirRuleta() {
+    fetch('/ruleta/modal/')
+      .then(r => {
+        if (!r.ok) throw new Error('Error ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        _girosDisponibles = data.giros_disponibles;
+        _costoGiro = data.costo_giro;
+        _renderizarModal(data);
+        document.body.style.overflow = 'hidden';
+      })
+      .catch(err => {
+        console.error('Error al cargar ruleta:', err);
+        toast('Error al cargar la ruleta', 'err');
+      });
+  }
+
+  function _renderizarModal(data) {
+    let existing = document.getElementById('ruleta-modal-container');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'ruleta-modal-container';
+
+    const segmentos = [];
+    let angulo = 0;
+    const paletaColores = data.rarezas.map(r => r.color);
+    const segSize = 360 / 8;
+    const orden = [0, 1, 0, 2, 0, 1, 3, 0];
+    orden.forEach(idx => {
+      const color = paletaColores[idx] || '#95a5a6';
+      segmentos.push(`${color} ${angulo}deg ${angulo + segSize}deg`);
+      angulo += segSize;
+    });
+    const gradient = `conic-gradient(from 0deg, ${segmentos.join(', ')})`;
+
+    const puedeComprar = data.saldo >= data.costo_giro;
+    let accionHTML;
+    if (data.giros_disponibles > 0) {
+      accionHTML = `<button class="btn-girar" onclick="_girarRuleta()" id="btn-girar">Girar ($${data.costo_giro})</button>`;
+    } else if (puedeComprar) {
+      accionHTML = `<button class="btn-comprar" onclick="_comprarGiro()" id="btn-comprar">Comprar 1 Giro ($${data.costo_giro})</button>`;
+    } else {
+      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(224,53,53,0.1);border-radius:12px;">
+        <p style="margin:0;font-weight:600;">Saldo insuficiente</p>
+        <p style="margin:.5rem 0 0;font-size:.85rem;color:#666;">Apuesta en eventos para ganar mas saldo</p>
+      </div>`;
     }
 
-    grid.innerHTML = mercados.map(m => {
-      const op = m.opciones;
-      const p0 = op[0] ? (op[0].precio * 100).toFixed(1) : 50;
-      const p1 = op[1] ? (op[1].precio * 100).toFixed(1) : 50;
-      const cierre = new Date(m.fecha_cierre).toLocaleDateString('es-CL');
-
-      return `
-      <a href="/mercado/${m.id}/" style="text-decoration:none;color:inherit;">
-        <div class="card" style="cursor:pointer;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
-            <span class="badge badge-open">Abierto</span>
-            <span style="font-size:0.78rem;color:var(--muted)">Cierra ${cierre}</span>
+    container.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)cerrarRuleta()">
+        <div class="modal-ruleta">
+          <div class="modal-header">
+            <button class="btn-cerrar" onclick="cerrarRuleta()">×</button>
+            <h2>Ruleta de Coleccionables</h2>
+            <p>Gira y obtén coleccionables únicos</p>
           </div>
-          <h3 style="font-size:1.05rem;margin-bottom:0.4rem;font-weight:600;">${m.titulo}</h3>
-          <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">${m.descripcion || ''}</p>
-
-          ${op[0] ? `
-          <div style="margin-bottom:0.6rem;">
-            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;">
-              <span>${op[0].nombre}</span>
-              <span style="color:var(--yes);font-weight:600;">${p0}%</span>
+          <div class="modal-body">
+            <div class="info-giros">
+              <p>Saldo: <span class="saldo">$${parseFloat(data.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}</span></p>
+              <p>Giros disponibles: <span class="giros" id="giros-display">${data.giros_disponibles}</span></p>
             </div>
-            <div class="prob-bar"><div class="prob-bar-fill" style="width:${p0}%"></div></div>
-          </div>
-          ` : ''}
-          ${op[1] ? `
-          <div style="margin-bottom:1rem;">
-            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;">
-              <span>${op[1].nombre}</span>
-              <span style="color:var(--no);font-weight:600;">${p1}%</span>
+            <div class="rareza-leyenda">
+              ${data.rarezas.map(r =>
+                `<span class="rareza-item" style="--c:${r.color}">${r.emoji} ${r.label} ${r.porcentaje}%</span>`
+              ).join('')}
             </div>
-            <div class="prob-bar"><div class="prob-bar-fill" style="width:${p1}%;background:var(--no)"></div></div>
-          </div>
-          ` : ''}
-
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:0.78rem;color:var(--muted)">Liquidez: $${parseFloat(m.liquidez_total).toLocaleString('es-CL')}</span>
-            <div style="display:flex;gap:0.5rem;">
-              ${op[0] ? `<span class="btn btn-yes btn-sm">${op[0].nombre}</span>` : ''}
-              ${op[1] ? `<span class="btn btn-no btn-sm">${op[1].nombre}</span>` : ''}
+            <div class="ruleta-container">
+              <div class="ruleta-pointer"></div>
+              <div class="ruleta-wheel" id="ruleta-wheel" style="background:${gradient}">
+                <div class="ruleta-center">?</div>
+              </div>
             </div>
+            ${accionHTML}
           </div>
         </div>
-      </a>`;
-    }).join('');
-  } catch (e) {
-    grid.innerHTML = `<p style="color:var(--no)">Error cargando mercados.</p>`;
-  }
-}
+      </div>`;
 
-loadMarkets();
+    document.body.appendChild(container);
+  }
+
+  function cerrarRuleta() {
+    const container = document.getElementById('ruleta-modal-container');
+    if (container) {
+      container.remove();
+      document.body.style.overflow = 'auto';
+    }
+    _girando = false;
+  }
+
+  async function _comprarGiro() {
+    const btn = document.getElementById('btn-comprar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Comprando...'; }
+
+    try {
+      const resp = await fetch('/ruleta/comprar-giro/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        _girosDisponibles = data.giros_disponibles;
+        if (btn) {
+          btn.outerHTML = `<button class="btn-girar" id="btn-girar" disabled>Girando...</button>`;
+        }
+        await _girarRuleta();
+      } else {
+        toast(data.error || 'Error al comprar giro', 'err');
+        if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al comprar giro', 'err');
+      if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+    }
+  }
+
+  async function _girarRuleta() {
+    if (_girando) return;
+    _girando = true;
+    const btn = document.getElementById('btn-girar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Girando...'; }
+    try {
+      const resp = await fetch('/ruleta/girar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        const girosEl = document.getElementById('giros-display');
+        if (girosEl) girosEl.textContent = data.giros_restantes;
+        await _animarRuleta(data.coleccionable.rareza);
+        setTimeout(() => {
+          _mostrarResultado(data);
+          if (window.fetchBalance) fetchBalance();
+        }, 500);
+      } else {
+        toast(data.error || 'Error al girar', 'err');
+        _girando = false;
+        if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al girar la ruleta', 'err');
+      _girando = false;
+      if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+    }
+  }
+
+  async function _animarRuleta(rareza) {
+    const wheel = document.getElementById('ruleta-wheel');
+    if (!wheel) return;
+    const opciones = _rarezaAngulos[rareza] || [0];
+    const destino = opciones[Math.floor(Math.random() * opciones.length)];
+    const anguloFinal = 1440 + (360 - destino);
+    wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    wheel.style.transform = `rotate(${anguloFinal}deg)`;
+    await new Promise(r => setTimeout(r, 4200));
+  }
+
+  function _mostrarResultado(data) {
+    const c = data.coleccionable;
+    const colores = { comun:'#95a5a6', raro:'#3498db', epico:'#9b59b6', legendario:'#f39c12' };
+    const color = colores[c.rareza] || '#95a5a6';
+    const modal = document.createElement('div');
+    modal.id = 'modal-resultado';
+    modal.innerHTML = `
+      <div class="modal-overlay" style="z-index:10001;">
+        <div class="modal-ruleta" style="max-width:400px;">
+          <div class="modal-header" style="border-bottom-color:${color};">
+            <h2 style="color:${color};">${data.es_nuevo ? 'NUEVO' : 'Obtenido'}</h2>
+            <p style="color:${color};font-weight:600;text-transform:uppercase;">${c.rareza_display}</p>
+          </div>
+          <div class="modal-body" style="text-align:center;">
+            ${c.imagen_url ? `<img src="${c.imagen_url}" alt="${c.nombre}" style="width:100px;height:100px;object-fit:contain;margin:1rem 0;">` : `<div style="font-size:3rem;color:${color};margin:1rem 0;">★</div>`}
+            <h3 style="margin:1rem 0;">${c.nombre}</h3>
+            <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
+            ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
+            <button class="btn btn-primary" style="width:100%;padding:.8rem;margin-top:1rem;" onclick="_cerrarResultado()">Continuar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function _cerrarResultado() {
+    const m = document.getElementById('modal-resultado');
+    if (m) m.remove();
+    cerrarRuleta();
+  }
+
+  if (USUARIO_ID) fetchBalance();
+  loadMarkets();
+
+  // Floating nav on scroll
+  const nav = document.querySelector('.hero-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
 </script>
+
+{% block extra_js %}{% endblock %}
 {% endblock %}
