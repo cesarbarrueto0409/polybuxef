@@ -725,22 +725,22 @@
     if (!canvas) return;
     const colors = ['#00a87a','#c82020','#6c5ce7','#e67e00'];
 
-    // Normalize timestamps to nearest minute to align both series
-    const toMin = s => {
-      const d = new Date(s);
-      d.setSeconds(0, 0);
-      return d.toISOString();
-    };
-
-    const allTimestamps = [...new Set(
-      Object.values(data.historial).flatMap(puntos => puntos.map(p => toMin(p.fecha)))
-    )].sort();
+    // Cada compra/venta agrega un punto a TODAS las opciones del mercado a la vez
+    // (ver comprar()/vender() en services), así que alineamos por orden de
+    // ocurrencia (índice) en vez de por timestamp: redondear a minuto/segundo
+    // colapsaba varios puntos en uno solo si había varias operaciones seguidas.
+    const maxPuntos = Math.max(0, ...Object.values(data.historial).map(puntos => puntos.length));
+    const allTimestamps = Array.from({length: maxPuntos}, (_, i) => {
+      for (const puntos of Object.values(data.historial)) {
+        if (puntos[i]) return puntos[i].fecha;
+      }
+      return null;
+    });
 
     const datasets = Object.entries(data.historial).map(([nombre,puntos],i) => {
-      const map = Object.fromEntries(puntos.map(p => [toMin(p.fecha), parseFloat((p.precio*100).toFixed(2))]));
       return {
         label: nombre,
-        data: allTimestamps.map(t => map[t] ?? null),
+        data: allTimestamps.map((_, idx) => puntos[idx] ? parseFloat((puntos[idx].precio*100).toFixed(2)) : null),
         borderColor: colors[i%colors.length],
         backgroundColor: colors[i%colors.length]+'15',
         borderWidth: 2,
