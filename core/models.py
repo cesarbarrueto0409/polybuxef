@@ -221,7 +221,7 @@ class TransaccionShare(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     shares = models.DecimalField(max_digits=18, decimal_places=6)
     monto = models.DecimalField(max_digits=18, decimal_places=2)
-    precio_unitario = models.DecimalField(max_digits=7, decimal_places=6)
+    precio_unitario = models.DecimalField(max_digits=18, decimal_places=6)
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
