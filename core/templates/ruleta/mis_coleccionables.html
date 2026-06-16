@@ -53,84 +53,92 @@
   }
   .btn-col-nav:hover { opacity: 0.75; }
 
-  /* ── HEADER ── */
-  .col-header { padding: 0 3.5rem 2.5rem; }
-
-  .col-header h1 {
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    font-weight: 300; letter-spacing: -0.05em; color: #000;
-    margin-bottom: 0.4rem;
+  /* ── CONTENT AREA (mismo patrón que .port-content) ── */
+  .col-content-wrap {
+    background: #f7f5ff;
+    padding: 2.5rem 3.5rem 5rem;
+    min-height: 60vh;
   }
-  .col-header p { font-size: 0.85rem; color: #999; margin-bottom: 1.5rem; }
+
+  .col-content-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .col-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700; letter-spacing: -0.4px; color: #000;
+    margin-bottom: 0.25rem;
+  }
+  .col-header p { font-size: 0.85rem; color: #aaa; margin-bottom: 1.5rem; }
 
   /* ── STATS ── */
   .col-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 1px;
-    background: #ede9ff;
-    border: 1px solid #ede9ff;
+    background: #ddd8f8;
+    border: 1px solid #ddd8f8;
     border-radius: 1rem;
     overflow: hidden;
     margin-bottom: 1.5rem;
   }
-  .col-stat-box { background: #fff; padding: 1.1rem 1rem; text-align: center; }
-  .col-stat-val { font-size: 1.6rem; font-weight: 700; color: #000; }
-  .col-stat-lbl { font-size: 0.75rem; color: #999; margin-top: 0.2rem; }
+  .col-stat-box { background: #fff; padding: 0.9rem 1rem; text-align: center; }
+  .col-stat-val { font-size: 1.4rem; font-weight: 700; color: #000; letter-spacing: -0.3px; }
+  .col-stat-lbl { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 0.2rem; font-weight: 600; }
 
   /* ── PROGRESS ── */
-  .col-progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+  .col-progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
   .col-progress-track {
-    flex: 1; height: 6px; border-radius: 3px; background: #eee; overflow: hidden;
+    flex: 1; height: 6px; border-radius: 3px; background: #ede9ff; overflow: hidden;
   }
-  .col-progress-fill { height: 100%; border-radius: 3px; background: #000; transition: width 0.4s ease; }
-  .col-progress-pct { font-size: 0.85rem; font-weight: 700; color: #000; white-space: nowrap; }
+  .col-progress-fill { height: 100%; border-radius: 3px; background: #7c6ff7; transition: width 0.4s ease; }
+  .col-progress-pct { font-size: 0.78rem; font-weight: 700; color: #6c5ce7; white-space: nowrap; }
 
-  /* ── CONTENT ── */
-  .col-content { padding: 0 3.5rem 5rem; }
-
-  .rareza-section { margin-bottom: 2.5rem; }
+  /* ── RAREZA SECTIONS ── */
+  .rareza-section { margin-bottom: 2rem; }
 
   .rareza-header {
-    display: flex; align-items: center; gap: 0.6rem;
-    margin-bottom: 1rem; padding-bottom: 0.6rem;
-    border-bottom: 1px solid #eee;
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.85rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0dcf5;
   }
-  .rareza-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-  .rareza-title { font-size: 0.95rem; font-weight: 700; color: #000; }
-  .rareza-count { margin-left: auto; font-size: 0.78rem; color: #999; }
+  .rareza-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+  .rareza-title { font-size: 0.82rem; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.4px; }
+  .rareza-count { margin-left: auto; font-size: 0.72rem; color: #aaa; }
 
   .coleccionables-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
   }
 
   .coleccionable-card {
     background: #fff;
-    border: 1px solid #eee;
-    border-radius: 1rem;
-    padding: 1.25rem 1rem;
+    border: 1px solid #ddd8f8;
+    border-radius: 0.85rem;
+    padding: 1rem 0.85rem;
     text-align: center;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .coleccionable-card:hover { border-color: #ddd8f8; }
+  .coleccionable-card:hover { border-color: #b8aff0; box-shadow: 0 4px 20px rgba(124,111,247,0.08); }
 
-  .coleccionable-imagen { font-size: 2.2rem; margin-bottom: 0.75rem; }
-  .coleccionable-nombre { font-size: 0.88rem; font-weight: 600; color: #000; margin-bottom: 0.3rem; }
-  .coleccionable-descripcion { font-size: 0.75rem; color: #999; line-height: 1.4; margin-bottom: 0.6rem; min-height: 2.1em; }
+  .coleccionable-imagen { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .coleccionable-nombre { font-size: 0.8rem; font-weight: 700; color: #000; margin-bottom: 0.25rem; }
+  .coleccionable-descripcion { font-size: 0.7rem; color: #999; line-height: 1.35; margin-bottom: 0.5rem; min-height: 1.9em; }
   .coleccionable-cantidad {
-    display: inline-block; font-size: 0.72rem; font-weight: 700;
-    color: #000; background: #f7f5ff; padding: 0.2rem 0.6rem; border-radius: 20px;
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    color: #6c5ce7; background: #f0eeff; padding: 0.18rem 0.55rem; border-radius: 20px;
   }
-  .coleccionable-fecha { font-size: 0.7rem; color: #bbb; margin-top: 0.5rem; }
+  .coleccionable-fecha { font-size: 0.66rem; color: #bbb; margin-top: 0.4rem; }
 
   .empty-state {
-    text-align: center; padding: 2rem;
-    color: #bbb; font-size: 0.85rem;
-    background: #fafafa; border: 1px dashed #e5e5e5; border-radius: 1rem;
+    text-align: center; padding: 1.5rem;
+    color: #aaa; font-size: 0.8rem;
+    background: #fff; border: 1px dashed #ddd8f8; border-radius: 0.85rem;
   }
-  .empty-state-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4; }
+  .empty-state-icon { font-size: 1.6rem; margin-bottom: 0.4rem; opacity: 0.4; }
 </style>
 {% endblock %}
 
@@ -153,9 +161,12 @@
   </nav>
 </div>
 
+<div class="col-content-wrap">
+<div class="col-content-inner">
+
 <div class="col-header">
-  <h1>Mis Coleccionables</h1>
-  <p>Colección personal de {{ usuario.nombre }}</p>
+  <h1>Mi Colección</h1>
+  <p>{{ usuario.nombre }} · {{ total_coleccionables }} de {{ total_posibles }} objetos</p>
 
   <div class="col-stats">
     <div class="col-stat-box">
@@ -183,8 +194,6 @@
     <span class="col-progress-pct">{{ porcentaje|floatformat:1 }}% completado</span>
   </div>
 </div>
-
-<div class="col-content">
 
   <!-- LEGENDARIOS -->
   <div class="rareza-section">
@@ -311,13 +320,14 @@
   </div>
 
   {% if total_coleccionables == 0 %}
-  <div style="text-align: center; margin: 3rem 0;">
-    <button onclick="abrirRuleta()" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 0.95rem;">
+  <div style="text-align: center; margin: 2rem 0;">
+    <button onclick="abrirRuleta()" class="btn btn-primary" style="padding: 0.7rem 1.6rem; font-size: 0.85rem;">
       Empezar a coleccionar
     </button>
   </div>
   {% endif %}
 
+</div>
 </div>
 
 <div id="toast"></div>
@@ -555,7 +565,7 @@
             <h3 style="margin:1rem 0;">${c.nombre}</h3>
             <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
             ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
-            <button class="btn btn-primary" style="width:100%;padding:.8rem;margin-top:1rem;" onclick="_cerrarResultadoYRecargar()">Continuar</button>
+            <button class="btn-girar" style="margin-top:1rem;" onclick="_cerrarResultadoYRecargar()">Continuar</button>
           </div>
         </div>
       </div>`;
