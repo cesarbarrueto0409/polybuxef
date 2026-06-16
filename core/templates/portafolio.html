@@ -387,14 +387,23 @@
     <!-- Nav -->
     <nav class="port-nav">
       <div class="port-nav-left">
-        <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
-        <a href="/portafolio/1/" class="active">Portafolio</a>
+        <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+        {% if user.is_authenticated and user.perfil %}
+        <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" class="active">Portafolio</a>
+        <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
+        {% endif %}
       </div>
-      <a href="/" class="port-nav-logo">polybuxef</a>
+      <a href="{% url 'home' %}" class="port-nav-logo">polybuxef</a>
       <div class="port-nav-right">
-        <span>usuario_test</span>
+        {% if user.is_authenticated and user.perfil %}
+        <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+        <a href="{% url 'perfil' %}" style="color:#aaa;text-decoration:none;">{{ user.perfil.usuario.username }}</a>
         <span class="nav-balance port-nav-balance">$ —</span>
-        <a href="/" class="btn-port-nav">Ver mercados</a>
+        {% else %}
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+        <a href="{% url 'registro' %}" class="btn-port-nav">Registrarse</a>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn-port-nav">Ver mercados</a>
       </div>
     </nav>
 
@@ -437,7 +446,7 @@
 <div id="toast"></div>
 
 <script>
-  const USUARIO_ID = 1;
+  const USUARIO_ID = {{ id_usuario }};
 
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
@@ -447,6 +456,20 @@
     window._toastTimer = setTimeout(() => el.className = '', 3000);
   }
 
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      for (const cookie of document.cookie.split(';')) {
+        const c = cookie.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   async function fetchBalance() {
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
@@ -454,6 +477,218 @@
       const bal = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
       document.querySelectorAll('.nav-balance').forEach(el => el.textContent = bal);
     } catch {}
+  }
+
+  // ============================================================
+  // SISTEMA DE RULETA
+  // ============================================================
+  let _girando = false;
+  let _girosDisponibles = 0;
+  let _costoGiro = 100;
+
+  const _rarezaAngulos = {
+    'comun':      [27, 135, 243, 351],
+    'raro':       [81, 297],
+    'epico':      [189],
+    'legendario': [333]
+  };
+
+  function abrirRuleta() {
+    fetch('/ruleta/modal/')
+      .then(r => {
+        if (!r.ok) throw new Error('Error ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        _girosDisponibles = data.giros_disponibles;
+        _costoGiro = data.costo_giro;
+        _renderizarModal(data);
+        document.body.style.overflow = 'hidden';
+      })
+      .catch(err => {
+        console.error('Error al cargar ruleta:', err);
+        toast('Error al cargar la ruleta', 'err');
+      });
+  }
+
+  function _renderizarModal(data) {
+    let existing = document.getElementById('ruleta-modal-container');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'ruleta-modal-container';
+
+    const segmentos = [];
+    let angulo = 0;
+    const paletaColores = data.rarezas.map(r => r.color);
+    const segSize = 360 / 8;
+    const orden = [0, 1, 0, 2, 0, 1, 3, 0];
+    orden.forEach(idx => {
+      const color = paletaColores[idx] || '#95a5a6';
+      segmentos.push(`${color} ${angulo}deg ${angulo + segSize}deg`);
+      angulo += segSize;
+    });
+    const gradient = `conic-gradient(from 0deg, ${segmentos.join(', ')})`;
+
+    const puedeComprar = data.saldo >= data.costo_giro;
+    let accionHTML;
+    if (data.giros_disponibles > 0) {
+      accionHTML = `<button class="btn-girar" onclick="_girarRuleta()" id="btn-girar">Girar ($${data.costo_giro})</button>`;
+    } else if (puedeComprar) {
+      accionHTML = `<button class="btn-comprar" onclick="_comprarGiro()" id="btn-comprar">Comprar 1 Giro ($${data.costo_giro})</button>`;
+    } else {
+      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(224,53,53,0.1);border-radius:12px;">
+        <p style="margin:0;font-weight:600;">Saldo insuficiente</p>
+        <p style="margin:.5rem 0 0;font-size:.85rem;color:#666;">Apuesta en eventos para ganar mas saldo</p>
+      </div>`;
+    }
+
+    container.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)cerrarRuleta()">
+        <div class="modal-ruleta">
+          <div class="modal-header">
+            <button class="btn-cerrar" onclick="cerrarRuleta()">×</button>
+            <h2>Ruleta de Coleccionables</h2>
+            <p>Gira y obtén coleccionables únicos</p>
+          </div>
+          <div class="modal-body">
+            <div class="info-giros">
+              <p>Saldo: <span class="saldo">$${parseFloat(data.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}</span></p>
+              <p>Giros disponibles: <span class="giros" id="giros-display">${data.giros_disponibles}</span></p>
+            </div>
+            <div class="rareza-leyenda">
+              ${data.rarezas.map(r =>
+                `<span class="rareza-item" style="--c:${r.color}">${r.emoji} ${r.label} ${r.porcentaje}%</span>`
+              ).join('')}
+            </div>
+            <div class="ruleta-container">
+              <div class="ruleta-pointer"></div>
+              <div class="ruleta-wheel" id="ruleta-wheel" style="background:${gradient}">
+                <div class="ruleta-center">?</div>
+              </div>
+            </div>
+            ${accionHTML}
+          </div>
+        </div>
+      </div>`;
+
+    document.body.appendChild(container);
+  }
+
+  function cerrarRuleta() {
+    const container = document.getElementById('ruleta-modal-container');
+    if (container) {
+      container.remove();
+      document.body.style.overflow = 'auto';
+    }
+    _girando = false;
+  }
+
+  async function _comprarGiro() {
+    const btn = document.getElementById('btn-comprar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Comprando...'; }
+
+    try {
+      const resp = await fetch('/ruleta/comprar-giro/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        _girosDisponibles = data.giros_disponibles;
+        if (btn) {
+          btn.outerHTML = `<button class="btn-girar" id="btn-girar" disabled>Girando...</button>`;
+        }
+        await _girarRuleta();
+      } else {
+        toast(data.error || 'Error al comprar giro', 'err');
+        if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al comprar giro', 'err');
+      if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+    }
+  }
+
+  async function _girarRuleta() {
+    if (_girando) return;
+    _girando = true;
+    const btn = document.getElementById('btn-girar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Girando...'; }
+    try {
+      const resp = await fetch('/ruleta/girar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        const girosEl = document.getElementById('giros-display');
+        if (girosEl) girosEl.textContent = data.giros_restantes;
+        await _animarRuleta(data.coleccionable.rareza);
+        setTimeout(() => {
+          _mostrarResultado(data);
+          if (window.fetchBalance) fetchBalance();
+        }, 500);
+      } else {
+        toast(data.error || 'Error al girar', 'err');
+        _girando = false;
+        if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al girar la ruleta', 'err');
+      _girando = false;
+      if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+    }
+  }
+
+  async function _animarRuleta(rareza) {
+    const wheel = document.getElementById('ruleta-wheel');
+    if (!wheel) return;
+    const opciones = _rarezaAngulos[rareza] || [0];
+    const destino = opciones[Math.floor(Math.random() * opciones.length)];
+    const anguloFinal = 1440 + (360 - destino);
+    wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    wheel.style.transform = `rotate(${anguloFinal}deg)`;
+    await new Promise(r => setTimeout(r, 4200));
+  }
+
+  function _mostrarResultado(data) {
+    const c = data.coleccionable;
+    const colores = { comun:'#95a5a6', raro:'#3498db', epico:'#9b59b6', legendario:'#f39c12' };
+    const color = colores[c.rareza] || '#95a5a6';
+    const modal = document.createElement('div');
+    modal.id = 'modal-resultado';
+    modal.innerHTML = `
+      <div class="modal-overlay" style="z-index:10001;">
+        <div class="modal-ruleta" style="max-width:400px;">
+          <div class="modal-header" style="border-bottom-color:${color};">
+            <h2 style="color:${color};">${data.es_nuevo ? 'NUEVO' : 'Obtenido'}</h2>
+            <p style="color:${color};font-weight:600;text-transform:uppercase;">${c.rareza_display}</p>
+          </div>
+          <div class="modal-body" style="text-align:center;">
+            ${c.imagen_url ? `<img src="${c.imagen_url}" alt="${c.nombre}" style="width:100px;height:100px;object-fit:contain;margin:1rem 0;">` : `<div style="font-size:3rem;color:${color};margin:1rem 0;">★</div>`}
+            <h3 style="margin:1rem 0;">${c.nombre}</h3>
+            <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
+            ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
+            <button class="btn btn-primary" style="width:100%;padding:.8rem;margin-top:1rem;" onclick="_cerrarResultado()">Continuar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function _cerrarResultado() {
+    const m = document.getElementById('modal-resultado');
+    if (m) m.remove();
+    cerrarRuleta();
   }
 
   function showTab(name, btn) {
