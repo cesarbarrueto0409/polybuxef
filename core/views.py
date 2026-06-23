@@ -420,3 +420,31 @@ def perfil_view(request):
     
     usuario = perfil.usuario
     return render(request, 'perfil.html', {'usuario': usuario})
+
+def ranking_page(request):
+    """Renderiza la página de Ranking."""
+    return render(request, 'ranking.html')
+
+
+@require_GET
+def ranking_api(request):
+    """
+    Devuelve los 100 usuarios con mayor saldo, ordenados de forma descendente.
+    """
+    top_usuarios = (
+        Usuario.objects
+        .order_by('-saldo')[:100]
+        .values('id', 'username', 'nombre', 'saldo', 'fecha_registro')
+    )
+    data = [
+        {
+            'posicion': idx + 1,
+            'id': u['id'],
+            'username': u['username'] or '—',
+            'nombre': u['nombre'],
+            'saldo': float(u['saldo']),
+            'fecha_registro': u['fecha_registro'].isoformat(),
+        }
+        for idx, u in enumerate(top_usuarios)
+    ]
+    return JsonResponse({'ranking': data, 'total': len(data)})
