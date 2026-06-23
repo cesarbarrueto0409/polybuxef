@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% block title %}Ranking — Polybuxef{% endblock %}
+
+{% block body %}
+
+<!-- Barra de anuncio superior -->
+<div class="announce-bar">
+  Top 100 usuarios con mayor saldo en la plataforma &nbsp;·&nbsp;
+  <a href="/">Ver mercados
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </svg>
+  </a>
+</div>
+
+<style>
+  body { background-color: #fff; color: #000; }
+
+  /* Nav */
+  .rank-nav {
+    position: fixed;
+    top: 38px; left: 0; right: 0;
+    z-index: 200;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 1.25rem 3.5rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rank-nav.scrolled {
+    top: 38px;
+    left: clamp(1rem, 18%, 320px);
+    right: clamp(1rem, 18%, 320px);
+    padding: 0.75rem 1.75rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  .rank-nav-spacer { height: 110px; }
+
+  .rank-nav-left { display: flex; gap: 2rem; align-items: center; }
+  .rank-nav-left a {
+    color: #888; text-decoration: none;
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.02em; transition: color 0.15s;
+  }
+  .rank-nav-left a:hover,
+  .rank-nav-left a.active { color: #000; }
+
+  .rank-nav-logo {
+    font-size: 1.3rem; font-weight: 700; color: #000;
+    text-decoration: none; letter-spacing: -0.5px;
+    text-transform: lowercase; text-align: center; white-space: nowrap;
+  }
+
+  .rank-nav-right {
+    display: flex; align-items: center;
+    justify-content: flex-end; gap: 1.5rem;
+  }
+
+  .rank-nav-balance {
+    font-size: 0.78rem; font-weight: 700; color: #00a87a !important;
+  }
+
+  .btn-rank-nav {
+    background: #000; color: #fff;
+    padding: 0.45rem 1.3rem; border-radius: 9999px;
+    font-size: 0.78rem; font-weight: 700;
+    text-decoration: none; transition: opacity 0.15s;
+  }
+  .btn-rank-nav:hover { opacity: 0.75; }
+
+  /* Contenido principal */
+  .rank-content {
+    background: #f7f5ff;
+    padding: 2.5rem 3.5rem 5rem;
+    min-height: 60vh;
+  }
+
+  .rank-inner {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Encabezado */
+  .rank-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+  }
+
+  .rank-header h1 {
+    font-size: 1.6rem; font-weight: 700;
+    letter-spacing: -0.4px; color: #000; margin: 0;
+  }
+
+  .rank-meta {
+    font-size: 0.78rem; color: #888; margin-top: 0.2rem;
+  }
+
+  /* Boton actualizar */
+  .btn-actualizar {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: #000; color: #fff;
+    padding: 0.55rem 1.4rem; border-radius: 9999px;
+    font-size: 0.82rem; font-weight: 700;
+    border: none; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-actualizar:hover { opacity: 0.75; }
+  .btn-actualizar:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-actualizar svg { transition: transform 0.5s; }
+  .btn-actualizar.spinning svg { animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Tabla */
+  .rank-table-wrap {
+    background: #fff;
+    border: 1px solid #ddd8f8;
+    border-radius: 1.25rem;
+    overflow: hidden;
+  }
+
+  .rank-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .rank-table thead th {
+    background: #f7f5ff;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.72rem; font-weight: 600;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.06em; text-align: left;
+    border-bottom: 1px solid #ede9fd;
+  }
+
+  .rank-table thead th.col-pos  { width: 56px; text-align: center; }
+  .rank-table thead th.col-saldo { text-align: right; }
+
+  .rank-table tbody tr {
+    border-bottom: 1px solid #f0ecff;
+    transition: background 0.12s;
+  }
+  .rank-table tbody tr:last-child { border-bottom: none; }
+  .rank-table tbody tr:hover { background: #faf8ff; }
+
+  .rank-table tbody td {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.88rem; color: #333;
+  }
+
+  /* Insignia de posición */
+  .col-pos { text-align: center; }
+
+  .pos-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 0.78rem; font-weight: 700;
+    background: #f0ecff; color: #7c6ff7;
+  }
+  .pos-badge.gold   { background: #fff7e0; color: #d4a017; }
+  .pos-badge.silver { background: #f0f0f0; color: #888; }
+  .pos-badge.bronze { background: #fff1eb; color: #c0622c; }
+
+  /* Nombre y username */
+  .user-nombre   { font-weight: 600; color: #000; }
+  .user-username { font-size: 0.75rem; color: #aaa; margin-top: 0.1rem; }
+
+  /* Saldo */
+  .col-saldo { text-align: right; }
+  .saldo-val { font-weight: 700; color: #00a87a; font-size: 0.92rem; }
+
+  /* Fila del usuario logueado */
+  .rank-table tbody tr.mi-fila { background: #f0f9f5 !important; }
+  .rank-table tbody tr.mi-fila .pos-badge { background: #c8f0e0; color: #00a87a; }
+
+  /* Estado de carga o vacío */
+  .rank-empty {
+    text-align: center; padding: 3rem;
+    color: #aaa; font-size: 0.9rem;
+  }
+
+  /* Timestamp última actualización */
+  .rank-timestamp {
+    text-align: right; font-size: 0.73rem;
+    color: #bbb; margin-top: 0.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .rank-content { padding: 1.5rem 1rem 4rem; }
+    .rank-table tbody td { padding: 0.7rem 0.75rem; font-size: 0.82rem; }
+    .rank-table thead th { padding: 0.6rem 0.75rem; }
+    .user-username { display: none; }
+  }
+</style>
+
+<!-- Navbar -->
+<div style="position:relative;">
+  <nav class="rank-nav" id="rankNav">
+    <div class="rank-nav-left">
+      <a href="{% url 'home' %}">Mercados</a>
+      <a href="{% url 'ranking' %}" class="active">Ranking</a>
+      {% if user.is_authenticated and user.perfil %}
+      <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Portafolio</a>
+      <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
+      {% endif %}
+    </div>
+    <a href="{% url 'home' %}" class="rank-nav-logo">polybuxef</a>
+    <div class="rank-nav-right">
+      {% if user.is_authenticated and user.perfil %}
+      <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+      <a href="{% url 'perfil' %}" style="color:#aaa;text-decoration:none;font-size:0.78rem;">
+        {{ user.perfil.usuario.username }}
+      </a>
+      <span class="nav-balance rank-nav-balance">$ —</span>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn-rank-nav">Iniciar sesión</a>
+      <a href="{% url 'registro' %}" class="btn-rank-nav">Registrarse</a>
+      {% endif %}
+    </div>
+  </nav>
+</div>
+
+<div class="rank-nav-spacer"></div>
+
+<!-- Contenido -->
+<div class="rank-content">
+  <div class="rank-inner">
+
+    <div class="rank-header">
+      <div>
+        <h1>Ranking</h1>
+        <div class="rank-meta" id="rankMeta">Top 100 usuarios por saldo</div>
+      </div>
+      <button class="btn-actualizar" id="btnActualizar" onclick="cargarRanking()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M1 4v6h6M23 20v-6h-6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="rank-table-wrap">
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th class="col-pos">#</th>
+            <th>Usuario</th>
+            <th class="col-saldo">Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="rankBody">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rank-timestamp" id="rankTimestamp"></div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="ruleta-modal-container"></div>
+
+{% endblock %}
