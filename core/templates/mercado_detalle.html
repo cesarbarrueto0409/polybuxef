@@ -196,6 +196,7 @@
   <nav class="mkt-nav">
     <div class="mkt-nav-left">
       <a href="{% url 'home' %}">Mercados</a>
+      <a href="{% url 'ranking' %}" {% if '/ranking/' in request.path %}class="active"{% endif %}>Ranking</a>
       {% if user.is_authenticated and user.perfil %}
       <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Portafolio</a>
       <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>

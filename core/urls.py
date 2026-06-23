@@ -20,11 +20,17 @@ urlpatterns = [
     path('api/portafolio/<int:id_usuario>/', views.portafolio, name='portafolio_api'),
     path('api/usuario/<int:id_usuario>/', views.usuario_api, name='usuario_api'),
     path('api/historial/<int:id_usuario>/', views.historial_usuario_api, name='historial_usuario'),
+
+    # Autenticación
     path('registro/', views.registro_view, name='registro'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('perfil/', views.perfil_view, name='perfil'),
-    
+
+    # Ranking
+    path('ranking/', views.ranking_page, name='ranking'),
+    path('api/ranking/', views.ranking_api, name='ranking_api'),
+
     # Ruleta y Coleccionables
     path('ruleta/modal/', views_ruleta.ruleta_modal_view, name='ruleta_modal'),
     path('ruleta/comprar-giro/', views_ruleta.comprar_giro_view, name='comprar_giro'),

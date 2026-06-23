@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+{% block title %}Ranking — Polybuxef{% endblock %}
+
+{% block body %}
+
+<!-- Barra de anuncio superior -->
+<div class="announce-bar">
+  Top 100 usuarios con mayor saldo en la plataforma &nbsp;·&nbsp;
+  <a href="/">Ver mercados
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </svg>
+  </a>
+</div>
+
+<style>
+  body { background-color: #fff; color: #000; }
+
+  /* Nav */
+  .rank-nav {
+    position: fixed;
+    top: 38px; left: 0; right: 0;
+    z-index: 200;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 1.25rem 3.5rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rank-nav.scrolled {
+    top: 38px;
+    left: clamp(1rem, 18%, 320px);
+    right: clamp(1rem, 18%, 320px);
+    padding: 0.75rem 1.75rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  .rank-nav-spacer { height: 110px; }
+
+  .rank-nav-left { display: flex; gap: 2rem; align-items: center; }
+  .rank-nav-left a {
+    color: #888; text-decoration: none;
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.02em; transition: color 0.15s;
+  }
+  .rank-nav-left a:hover,
+  .rank-nav-left a.active { color: #000; }
+
+  .rank-nav-logo {
+    font-size: 1.3rem; font-weight: 700; color: #000;
+    text-decoration: none; letter-spacing: -0.5px;
+    text-transform: lowercase; text-align: center; white-space: nowrap;
+  }
+
+  .rank-nav-right {
+    display: flex; align-items: center;
+    justify-content: flex-end; gap: 1.5rem;
+  }
+
+  .rank-nav-balance {
+    font-size: 0.78rem; font-weight: 700; color: #00a87a !important;
+  }
+
+  .btn-rank-nav {
+    background: #000; color: #fff;
+    padding: 0.45rem 1.3rem; border-radius: 9999px;
+    font-size: 0.78rem; font-weight: 700;
+    text-decoration: none; transition: opacity 0.15s;
+  }
+  .btn-rank-nav:hover { opacity: 0.75; }
+
+  /* Contenido principal */
+  .rank-content {
+    background: #f7f5ff;
+    padding: 2.5rem 3.5rem 5rem;
+    min-height: 60vh;
+  }
+
+  .rank-inner {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Encabezado */
+  .rank-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+  }
+
+  .rank-header h1 {
+    font-size: 1.6rem; font-weight: 700;
+    letter-spacing: -0.4px; color: #000; margin: 0;
+  }
+
+  .rank-meta {
+    font-size: 0.78rem; color: #888; margin-top: 0.2rem;
+  }
+
+  /* Boton actualizar */
+  .btn-actualizar {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: #000; color: #fff;
+    padding: 0.55rem 1.4rem; border-radius: 9999px;
+    font-size: 0.82rem; font-weight: 700;
+    border: none; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-actualizar:hover { opacity: 0.75; }
+  .btn-actualizar:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-actualizar svg { transition: transform 0.5s; }
+  .btn-actualizar.spinning svg { animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Tabla */
+  .rank-table-wrap {
+    background: #fff;
+    border: 1px solid #ddd8f8;
+    border-radius: 1.25rem;
+    overflow: hidden;
+  }
+
+  .rank-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .rank-table thead th {
+    background: #f7f5ff;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.72rem; font-weight: 600;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.06em; text-align: left;
+    border-bottom: 1px solid #ede9fd;
+  }
+
+  .rank-table thead th.col-pos  { width: 56px; text-align: center; }
+  .rank-table thead th.col-saldo { text-align: right; }
+
+  .rank-table tbody tr {
+    border-bottom: 1px solid #f0ecff;
+    transition: background 0.12s;
+  }
+  .rank-table tbody tr:last-child { border-bottom: none; }
+  .rank-table tbody tr:hover { background: #faf8ff; }
+
+  .rank-table tbody td {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.88rem; color: #333;
+  }
+
+  /* Insignia de posición */
+  .col-pos { text-align: center; }
+
+  .pos-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 0.78rem; font-weight: 700;
+    background: #f0ecff; color: #7c6ff7;
+  }
+  .pos-badge.gold   { background: #fff7e0; color: #d4a017; }
+  .pos-badge.silver { background: #f0f0f0; color: #888; }
+  .pos-badge.bronze { background: #fff1eb; color: #c0622c; }
+
+  /* Nombre y username */
+  .user-nombre   { font-weight: 600; color: #000; }
+  .user-username { font-size: 0.75rem; color: #aaa; margin-top: 0.1rem; }
+
+  /* Saldo */
+  .col-saldo { text-align: right; }
+  .saldo-val { font-weight: 700; color: #00a87a; font-size: 0.92rem; }
+
+  /* Fila del usuario logueado */
+  .rank-table tbody tr.mi-fila { background: #f0f9f5 !important; }
+  .rank-table tbody tr.mi-fila .pos-badge { background: #c8f0e0; color: #00a87a; }
+
+  /* Estado de carga o vacío */
+  .rank-empty {
+    text-align: center; padding: 3rem;
+    color: #aaa; font-size: 0.9rem;
+  }
+
+  /* Timestamp última actualización */
+  .rank-timestamp {
+    text-align: right; font-size: 0.73rem;
+    color: #bbb; margin-top: 0.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .rank-content { padding: 1.5rem 1rem 4rem; }
+    .rank-table tbody td { padding: 0.7rem 0.75rem; font-size: 0.82rem; }
+    .rank-table thead th { padding: 0.6rem 0.75rem; }
+    .user-username { display: none; }
+  }
+</style>
+
+<!-- Navbar -->
+<div style="position:relative;">
+  <nav class="rank-nav" id="rankNav">
+    <div class="rank-nav-left">
+      <a href="{% url 'home' %}">Mercados</a>
+      <a href="{% url 'ranking' %}" class="active">Ranking</a>
+      {% if user.is_authenticated and user.perfil %}
+      <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Portafolio</a>
+      <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
+      {% endif %}
+    </div>
+    <a href="{% url 'home' %}" class="rank-nav-logo">polybuxef</a>
+    <div class="rank-nav-right">
+      {% if user.is_authenticated and user.perfil %}
+      <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+      <a href="{% url 'perfil' %}" style="color:#aaa;text-decoration:none;font-size:0.78rem;">
+        {{ user.perfil.usuario.username }}
+      </a>
+      <span class="nav-balance rank-nav-balance">$ —</span>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn-rank-nav">Iniciar sesión</a>
+      <a href="{% url 'registro' %}" class="btn-rank-nav">Registrarse</a>
+      {% endif %}
+    </div>
+  </nav>
+</div>
+
+<div class="rank-nav-spacer"></div>
+
+<!-- Contenido -->
+<div class="rank-content">
+  <div class="rank-inner">
+
+    <div class="rank-header">
+      <div>
+        <h1>Ranking</h1>
+        <div class="rank-meta" id="rankMeta">Top 100 usuarios por saldo</div>
+      </div>
+      <button class="btn-actualizar" id="btnActualizar" onclick="cargarRanking()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M1 4v6h6M23 20v-6h-6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="rank-table-wrap">
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th class="col-pos">#</th>
+            <th>Usuario</th>
+            <th class="col-saldo">Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="rankBody">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rank-timestamp" id="rankTimestamp"></div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="ruleta-modal-container"></div>
+
+<script>
+  const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
+
+  /* Lee una cookie por nombre */
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      for (const cookie of document.cookie.split(';')) {
+        const c = cookie.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  /* Escapa caracteres HTML para evitar XSS al insertar datos de la DB */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* Devuelve clase CSS según posición */
+  function claseBadge(pos) {
+    if (pos === 1) return 'pos-badge gold';
+    if (pos === 2) return 'pos-badge silver';
+    if (pos === 3) return 'pos-badge bronze';
+    return 'pos-badge';
+  }
+
+  /* Obtiene ranking y renderiza tabla */
+  async function cargarRanking() {
+    const btn   = document.getElementById('btnActualizar');
+    const tbody = document.getElementById('rankBody');
+
+    btn.disabled = true;
+    btn.classList.add('spinning');
+
+    try {
+      const r = await fetch('/api/ranking/');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const lista = data.ranking;
+
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="rank-empty">No hay usuarios registrados aún.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map(u => {
+        const esMio   = USUARIO_ID && u.id === USUARIO_ID;
+        const saldoFmt = parseFloat(u.saldo).toLocaleString('es-CL', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        return `
+          <tr${esMio ? ' class="mi-fila"' : ''}>
+            <td class="col-pos">
+              <span class="${claseBadge(u.posicion)}">${u.posicion}</span>
+            </td>
+            <td>
+              <div class="user-nombre">
+                ${escHtml(u.nombre)}
+                ${esMio ? '<span style="font-size:0.7rem;color:#00a87a;font-weight:600;margin-left:0.35rem;">(tú)</span>' : ''}
+              </div>
+              <div class="user-username">@${escHtml(u.username)}</div>
+            </td>
+            <td class="col-saldo">
+              <span class="saldo-val">$ ${saldoFmt}</span>
+            </td>
+          </tr>`;
+      }).join('');
+
+      /* Actualiza contador y timestamp */
+      document.getElementById('rankMeta').textContent = `${lista.length} usuarios en el ranking`;
+      const ahora = new Date();
+      document.getElementById('rankTimestamp').textContent =
+        `Actualizado: ${ahora.toLocaleDateString('es-CL')} ${ahora.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'})}`;
+
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="3" class="rank-empty">Error al cargar el ranking. Intenta de nuevo.</td></tr>';
+      toast('Error al cargar el ranking', 'err');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('spinning');
+    }
+  }
+
+  /* Actualiza saldo en la navbar */
+  async function fetchBalance() {
+    if (!USUARIO_ID) return;
+    try {
+      const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
+      const d = await r.json();
+      const bal = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      document.querySelectorAll('.nav-balance').forEach(el => el.textContent = bal);
+    } catch {}
+  }
+
+  /* Efecto blur en el scroll */
+  window.addEventListener('scroll', () => {
+    document.getElementById('rankNav').classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+// ============================================================
+// SISTEMA DE RULETA
+// ============================================================
+  let _girando = false;
+  let _girosDisponibles = 0;
+  let _costoGiro = 100;
+
+  const _rarezaAngulos = {
+    'comun':      [27, 135, 243, 351],
+    'raro':       [81, 297],
+    'epico':      [189],
+    'legendario': [333]
+  };
+
+  function abrirRuleta() {
+    fetch('/ruleta/modal/')
+      .then(r => {
+        if (!r.ok) throw new Error('Error ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        _girosDisponibles = data.giros_disponibles;
+        _costoGiro = data.costo_giro;
+        _renderizarModal(data);
+        document.body.style.overflow = 'hidden';
+      })
+      .catch(err => {
+        console.error('Error al cargar ruleta:', err);
+        toast('Error al cargar la ruleta', 'err');
+      });
+  }
+
+  function _renderizarModal(data) {
+    let existing = document.getElementById('ruleta-modal-container');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'ruleta-modal-container';
+
+    const segmentos = [];
+    let angulo = 0;
+    const paletaColores = data.rarezas.map(r => r.color);
+    const segSize = 360 / 8;
+    const orden = [0, 1, 0, 2, 0, 1, 3, 0];
+    orden.forEach(idx => {
+      const color = paletaColores[idx] || '#95a5a6';
+      segmentos.push(`${color} ${angulo}deg ${angulo + segSize}deg`);
+      angulo += segSize;
+    });
+    const gradient = `conic-gradient(from 0deg, ${segmentos.join(', ')})`;
+
+    const puedeComprar = data.saldo >= data.costo_giro;
+    let accionHTML;
+    if (data.giros_disponibles > 0) {
+      accionHTML = `<button class="btn-girar" onclick="_girarRuleta()" id="btn-girar">Girar ($${data.costo_giro})</button>`;
+    } else if (puedeComprar) {
+      accionHTML = `<button class="btn-comprar" onclick="_comprarGiro()" id="btn-comprar">Comprar 1 Giro ($${data.costo_giro})</button>`;
+    } else {
+      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(224,53,53,0.1);border-radius:12px;">
+        <p style="margin:0;font-weight:600;">Saldo insuficiente</p>
+        <p style="margin:.5rem 0 0;font-size:.85rem;color:#666;">Apuesta en eventos para ganar mas saldo</p>
+      </div>`;
+    }
+
+    container.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)cerrarRuleta()">
+        <div class="modal-ruleta">
+          <div class="modal-header">
+            <button class="btn-cerrar" onclick="cerrarRuleta()">×</button>
+            <h2>Ruleta de Coleccionables</h2>
+            <p>Gira y obtén coleccionables únicos</p>
+          </div>
+          <div class="modal-body">
+            <div class="info-giros">
+              <p>Saldo: <span class="saldo">$${parseFloat(data.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}</span></p>
+              <p>Giros disponibles: <span class="giros" id="giros-display">${data.giros_disponibles}</span></p>
+            </div>
+            <div class="rareza-leyenda">
+              ${data.rarezas.map(r =>
+                `<span class="rareza-item" style="--c:${r.color}">${r.emoji} ${r.label} ${r.porcentaje}%</span>`
+              ).join('')}
+            </div>
+            <div class="ruleta-container">
+              <div class="ruleta-pointer"></div>
+              <div class="ruleta-wheel" id="ruleta-wheel" style="background:${gradient}">
+                <div class="ruleta-center">?</div>
+              </div>
+            </div>
+            ${accionHTML}
+          </div>
+        </div>
+      </div>`;
+
+    document.body.appendChild(container);
+  }
+
+  function cerrarRuleta() {
+    const container = document.getElementById('ruleta-modal-container');
+    if (container) {
+      container.remove();
+      document.body.style.overflow = 'auto';
+    }
+    _girando = false;
+  }
+
+  async function _comprarGiro() {
+    const btn = document.getElementById('btn-comprar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Comprando...'; }
+
+    try {
+      const resp = await fetch('/ruleta/comprar-giro/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        _girosDisponibles = data.giros_disponibles;
+        if (btn) {
+          btn.outerHTML = `<button class="btn-girar" id="btn-girar" disabled>Girando...</button>`;
+        }
+        await _girarRuleta();
+      } else {
+        toast(data.error || 'Error al comprar giro', 'err');
+        if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al comprar giro', 'err');
+      if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+    }
+  }
+
+  async function _girarRuleta() {
+    if (_girando) return;
+    _girando = true;
+    const btn = document.getElementById('btn-girar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Girando...'; }
+    try {
+      const resp = await fetch('/ruleta/girar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        const girosEl = document.getElementById('giros-display');
+        if (girosEl) girosEl.textContent = data.giros_restantes;
+        await _animarRuleta(data.coleccionable.rareza);
+        setTimeout(() => {
+          _mostrarResultado(data);
+          if (window.fetchBalance) fetchBalance();
+        }, 500);
+      } else {
+        toast(data.error || 'Error al girar', 'err');
+        _girando = false;
+        if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al girar la ruleta', 'err');
+      _girando = false;
+      if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+    }
+  }
+
+  async function _animarRuleta(rareza) {
+    const wheel = document.getElementById('ruleta-wheel');
+    if (!wheel) return;
+    const opciones = _rarezaAngulos[rareza] || [0];
+    const destino = opciones[Math.floor(Math.random() * opciones.length)];
+    const anguloFinal = 1440 + (360 - destino);
+    wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    wheel.style.transform = `rotate(${anguloFinal}deg)`;
+    await new Promise(r => setTimeout(r, 4200));
+  }
+
+  function _mostrarResultado(data) {
+    const c = data.coleccionable;
+    const colores = { comun:'#95a5a6', raro:'#3498db', epico:'#9b59b6', legendario:'#f39c12' };
+    const color = colores[c.rareza] || '#95a5a6';
+    const modal = document.createElement('div');
+    modal.id = 'modal-resultado';
+    modal.innerHTML = `
+      <div class="modal-overlay" style="z-index:10001;">
+        <div class="modal-ruleta" style="max-width:400px;">
+          <div class="modal-header" style="border-bottom-color:${color};">
+            <h2 style="color:${color};">${data.es_nuevo ? 'NUEVO' : 'Obtenido'}</h2>
+            <p style="color:${color};font-weight:600;text-transform:uppercase;">${c.rareza_display}</p>
+          </div>
+          <div class="modal-body" style="text-align:center;">
+            ${c.imagen_url ? `<img src="${c.imagen_url}" alt="${c.nombre}" style="width:100px;height:100px;object-fit:contain;margin:1rem 0;">` : `<div style="font-size:3rem;color:${color};margin:1rem 0;">★</div>`}
+            <h3 style="margin:1rem 0;">${c.nombre}</h3>
+            <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
+            ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
+            <button class="btn-girar" style="margin-top:1rem;" onclick="_cerrarResultado()">Continuar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function _cerrarResultado() {
+    const m = document.getElementById('modal-resultado');
+    if (m) m.remove();
+    cerrarRuleta();
+  }
+
+  /* Inicialización */
+  fetchBalance();
+  cargarRanking();
+</script>
+
+{% endblock %}
