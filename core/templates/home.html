@@ -515,7 +515,7 @@
         <div class="hero-nav-right">
           {% if user.is_authenticated and user.perfil %}
           <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
-          <a href="{% url 'perfil' %}" style="font-size:0.78rem;opacity:0.85;">{{ user.perfil.usuario.username }}</a>
+          <a href="{% url 'perfil' %}" style="font-size:0.78rem;opacity:0.85;">Mi Perfil</a>
           <span class="nav-balance" style="font-size:0.78rem;font-weight:600;opacity:0.9;">$ —</span>
           <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" class="btn-nav-cta">Mi portafolio</a>
           {% else %}

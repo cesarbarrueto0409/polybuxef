@@ -215,9 +215,7 @@
     <div class="rank-nav-right">
       {% if user.is_authenticated and user.perfil %}
       <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
-      <a href="{% url 'perfil' %}" style="color:#aaa;text-decoration:none;font-size:0.78rem;">
-        {{ user.perfil.usuario.username }}
-      </a>
+      <a href="{% url 'perfil' %}" style="color:#aaa;text-decoration:none;font-size:0.78rem;">Mi Perfil</a>
       <span class="nav-balance rank-nav-balance">$ —</span>
       {% else %}
       <a href="{% url 'login' %}" class="btn-rank-nav">Iniciar sesión</a>
