@@ -354,6 +354,7 @@ def perfil_view(request):
     return render(request, 'perfil.html', {'usuario': usuario})
 
 
+# Busca perfiles por nombre o usuario para mostrar los resultados disponibles.
 @login_required
 def buscar_perfiles_view(request):
     query = request.GET.get('q', '').strip()
