@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Buscar Perfiles - Polybuxef{% endblock %}
+
+{% block extra_head %}
+<style>
+  .profiles-search-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .75rem;
+    align-items: end;
+  }
+
+  @media (max-width: 640px) {
+    .profiles-search-form { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Buscar Perfiles</h1>
+
+<div style="display:grid; gap:1.5rem; max-width:760px;">
+  <form method="get" class="card profiles-search-form">
+    <div style="flex:1;">
+      <label for="q">Nombre o usuario</label>
+      <input
+        id="q"
+        name="q"
+        class="input-field"
+        type="search"
+        value="{{ query }}"
+        placeholder="Ej: gabriel"
+        autocomplete="off"
+      >
+    </div>
+    <button class="btn btn-primary" type="submit">Buscar</button>
+  </form>
+
+  <div style="display:grid; gap:.9rem;">
+    {% for perfil in perfiles %}
+      <div class="card" style="display:flex; justify-content:space-between; gap:1rem; align-items:center;">
+        <div>
+          <p style="font-size:1.05rem; font-weight:700; margin-bottom:.25rem;">{{ perfil.usuario.nombre }}</p>
+          <p style="color:var(--muted); font-size:.9rem;">@{{ perfil.user.username }}</p>
+          <p style="color:var(--muted); font-size:.8rem; margin-top:.5rem;">
+            Miembro desde {{ perfil.usuario.fecha_registro|date:"d M Y" }}
+          </p>
+        </div>
+        <span class="btn btn-secondary btn-sm" style="opacity:.65; cursor:not-allowed;">Perfil pronto</span>
+      </div>
+    {% empty %}
+      <div class="card" style="text-align:center; color:var(--muted);">
+        {% if query %}
+          No encontramos perfiles para "{{ query }}".
+        {% else %}
+          No hay perfiles disponibles todavía.
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

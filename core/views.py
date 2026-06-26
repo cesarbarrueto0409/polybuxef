@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.db import transaction
+from django.db.models import Q
 from .forms import RegistroForm
 from .models import Perfil
 
@@ -351,3 +352,21 @@ def perfil_view(request):
     perfil = request.user.perfil
     usuario = perfil.usuario
     return render(request, 'perfil.html', {'usuario': usuario})
+
+
+# Busca perfiles por nombre o usuario para mostrar los resultados disponibles.
+@login_required
+def buscar_perfiles_view(request):
+    query = request.GET.get('q', '').strip()
+    perfiles = Perfil.objects.select_related('user', 'usuario').order_by('usuario__nombre')
+
+    if query:
+        perfiles = perfiles.filter(
+            Q(usuario__nombre__icontains=query) |
+            Q(user__username__icontains=query)
+        )
+
+    return render(request, 'buscar_perfiles.html', {
+        'query': query,
+        'perfiles': perfiles[:30],
+    })
