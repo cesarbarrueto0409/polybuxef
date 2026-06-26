@@ -4,34 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Polybuxef{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d14;
-      --surface: #16161f;
-      --surface2: #1e1e2e;
-      --border: #2a2a3d;
-      --accent: #6c5ce7;
-      --accent2: #00cec9;
-      --yes: #00b894;
-      --no: #d63031;
-      --text: #e8e8f0;
-      --muted: #888899;
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #7c6ff7;
+      --accent2: #00d4cf;
+      --yes: #00c896;
+      --no: #e03535;
+      --text: #ffffff;
+      --muted: #666666;
       --radius: 12px;
+      --radius-sm: 8px;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #fff;
+      color: #000;
+      font-family: 'Manrope', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BANNER ── */
+    .announce-bar {
+      background: #fff;
+      color: #000;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .announce-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.25rem;
+      color: #000;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .announce-bar a:hover { text-decoration: underline; }
+
+    /* ── SHARED DARK SURFACE (for inner pages) ── */
+    .inner-page {
+      background: #0a0a0a;
+      color: #fff;
       min-height: 100vh;
     }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
+    .inner-page-nav {
+      background: #111;
+      border-bottom: 1px solid #222;
+      padding: 0 2.5rem;
       height: 60px;
       display: flex;
       align-items: center;
@@ -41,80 +75,76 @@
       z-index: 100;
     }
 
-    .nav-logo {
-      font-size: 1.3rem;
+    .inner-nav-logo {
+      font-size: 1.1rem;
       font-weight: 700;
-      color: var(--accent);
+      color: #fff;
       text-decoration: none;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
 
-    .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+    .inner-nav-links { display: flex; gap: 0.25rem; }
 
-    .nav-links a {
-      color: var(--muted);
+    .inner-nav-links a {
+      color: #888;
       text-decoration: none;
-      padding: 0.4rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      transition: all 0.15s;
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.15s;
     }
 
-    .nav-links a:hover { color: var(--text); background: var(--surface2); }
-    .nav-links a.active { color: var(--text); background: var(--surface2); }
+    .inner-nav-links a:hover,
+    .inner-nav-links a.active { color: #fff; }
 
-    .nav-user {
+    .inner-nav-right {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
     }
 
     .balance-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.3rem 0.8rem;
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 1rem;
       color: var(--yes);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.85rem;
     }
 
-    .nav-user-name {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    /* ── INNER PAGE CONTENT ── */
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2.5rem 4rem; }
 
     .page-title {
       font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 1.5rem;
+      color: #fff;
     }
 
-    /* Cards */
+    /* ── CARDS ── */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #141414;
+      border: 1px solid #2a2a2a;
       border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      transition: border-color 0.15s;
+      padding: 1.4rem 1.6rem;
+      transition: border-color 0.2s;
     }
 
-    .card:hover { border-color: var(--accent); }
+    .card:hover { border-color: #333; }
 
-    /* Buttons */
+    /* ── BUTTONS ── */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.4rem;
-      padding: 0.55rem 1.2rem;
-      border-radius: 8px;
+      padding: 0.65rem 1.4rem;
+      border-radius: 6px;
       border: none;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       font-weight: 600;
       cursor: pointer;
       transition: opacity 0.15s, transform 0.1s;
@@ -122,77 +152,77 @@
     }
 
     .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn:hover { opacity: 0.88; }
 
-    .btn-yes { background: var(--yes); color: #fff; }
+    .btn-yes { background: var(--yes); color: #000; }
     .btn-no  { background: var(--no);  color: #fff; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+    .btn-primary { background: #fff; color: #000; }
+    .btn-secondary { background: #1c1c1c; color: #fff; border: 1px solid #333; }
+    .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.8rem; }
 
-    .btn:hover { opacity: 0.85; }
-
-    /* Badge */
+    /* ── BADGE ── */
     .badge {
       display: inline-block;
-      padding: 0.2rem 0.6rem;
+      padding: 0.2rem 0.65rem;
       border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .badge-open    { background: rgba(0,184,148,.15); color: var(--yes); }
-    .badge-closed  { background: rgba(214,48,49,.15);  color: var(--no); }
-    .badge-resuelto { background: rgba(108,92,231,.15); color: var(--accent); }
+    .badge-open     { background: rgba(0,200,150,.12); color: var(--yes); border: 1px solid rgba(0,200,150,.2); }
+    .badge-closed   { background: rgba(224,53,53,.12);  color: var(--no);  border: 1px solid rgba(224,53,53,.2); }
+    .badge-resuelto { background: rgba(124,111,247,.12); color: var(--accent); border: 1px solid rgba(124,111,247,.2); }
 
-    /* Progress bar */
+    /* ── PROB BAR ── */
     .prob-bar {
-      height: 6px;
-      border-radius: 3px;
-      background: var(--border);
+      height: 4px;
+      border-radius: 2px;
+      background: #2a2a2a;
       overflow: hidden;
-      margin: 0.5rem 0;
+      margin: 0.4rem 0;
     }
 
     .prob-bar-fill {
       height: 100%;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--yes), var(--accent2));
+      border-radius: 2px;
+      background: var(--yes);
       transition: width 0.4s ease;
     }
 
-    /* Toast */
+    /* ── TOAST ── */
     #toast {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
+      background: #1c1c1c;
+      border: 1px solid #333;
       border-radius: var(--radius);
-      padding: 0.8rem 1.2rem;
-      font-size: 0.9rem;
+      padding: 0.9rem 1.3rem;
+      font-size: 0.875rem;
       z-index: 9999;
       opacity: 0;
       transform: translateY(10px);
       transition: all 0.25s;
       pointer-events: none;
       max-width: 320px;
+      color: #fff;
     }
 
     #toast.show { opacity: 1; transform: translateY(0); }
     #toast.ok   { border-color: var(--yes); color: var(--yes); }
     #toast.err  { border-color: var(--no);  color: var(--no); }
 
-    /* Input */
+    /* ── INPUT ── */
     .input-field {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: var(--radius-sm);
+      color: #fff;
       font-size: 0.95rem;
-      padding: 0.55rem 0.8rem;
+      padding: 0.6rem 0.9rem;
       width: 100%;
       outline: none;
       transition: border-color 0.15s;
@@ -200,36 +230,190 @@
 
     .input-field:focus { border-color: var(--accent); }
 
-    label { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.3rem; display: block; }
+    label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; display: block; font-weight: 500; }
+    .form-group { margin-bottom: 1rem; }
 
-    .form-group { margin-bottom: 0.9rem; }
+    /* ── RULETA (botón + modal, usado por las navs de todas las páginas) ── */
+    .btn-ruleta {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-ruleta:hover { opacity: 0.75; }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20,15,40,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-ruleta {
+      background: #fff;
+      border: 1px solid #ddd8f8;
+      border-radius: 1rem;
+      width: 90%; max-width: 400px;
+      position: relative;
+      color: #000;
+      box-shadow: 0 20px 60px rgba(124,111,247,0.15);
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #f0eeff;
+      text-align: center;
+      position: relative;
+    }
+    .modal-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: .3rem;
+    }
+    .modal-header p { color: #999; font-size: .8rem; }
+
+    .btn-cerrar {
+      position: absolute; top: 0.85rem; right: 0.85rem;
+      background: transparent; border: none;
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: color .15s;
+      color: #bbb; font-size: 1.1rem;
+    }
+    .btn-cerrar:hover { color: #000; }
+
+    .modal-body { padding: 1.5rem; }
+
+    .ruleta-container {
+      position: relative; width: 200px; height: 200px;
+      margin: 0 auto 1.25rem;
+    }
+    .ruleta-wheel {
+      width: 100%; height: 100%; border-radius: 50%;
+      border: 1px solid #ddd8f8;
+      position: relative; overflow: hidden;
+    }
+    .ruleta-center {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 42px; height: 42px;
+      background: #fff; border: 1px solid #ddd8f8;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 1rem; z-index: 10;
+      font-weight: 700; color: #000;
+    }
+    .ruleta-pointer {
+      position: absolute; top: -2px; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 12px solid #000;
+      z-index: 10;
+    }
+
+    .info-giros {
+      text-align: center; margin-bottom: 1.25rem; padding: 0.7rem;
+      background: #f7f5ff; border-radius: var(--radius-sm);
+      border: 1px solid #ddd8f8;
+    }
+    .info-giros p { margin: .2rem 0; font-size: .8rem; color: #999; }
+    .info-giros .saldo { color: #00a87a; font-weight: 700; }
+    .info-giros .giros { color: #000; font-weight: 700; }
+
+    .rareza-leyenda {
+      display: flex; flex-wrap: wrap; gap: .35rem;
+      justify-content: center; margin-bottom: 1.1rem;
+    }
+    .rareza-item {
+      font-size: .68rem; font-weight: 600;
+      padding: .2rem .55rem; border-radius: var(--radius-sm);
+      background: #fff;
+      border: 1px solid var(--c);
+      color: var(--c);
+    }
+
+    .btn-girar {
+      width: 100%; padding: 0.75rem;
+      background: #000; color: #fff; border: none; border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn-girar:hover:not(:disabled) { opacity: .8; }
+    .btn-girar:disabled { opacity: .35; cursor: not-allowed; }
+
+    .btn-comprar {
+      width: 100%; padding: .7rem;
+      background: #00c896; color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      transition: opacity .15s; margin-top: 0;
+    }
+    .btn-comprar:hover:not(:disabled) { opacity: .8; }
+    .btn-comprar:disabled { opacity: .35; cursor: not-allowed; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-<nav>
-  <a href="/" class="nav-logo">Polybuxef</a>
-  <div class="nav-links">
-    <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
-    <a href="{% url 'buscar_perfiles' %}" {% if request.path == '/perfiles/' %}class="active"{% endif %}>Perfiles</a>
-    {% if user.is_authenticated and user.perfil %}
-    <a href="/portafolio/{{ user.perfil.usuario.id }}/" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Mi Portafolio</a>
-    {% endif %}
-  </div>
-  <div class="nav-user">
-    {% if user.is_authenticated %}
-      <a href="{% url 'perfil' %}" style="color:var(--muted); text-decoration:none;">{{ user.username }}</a>
-      <span class="balance-chip" id="nav-balance">$ —</span>
-    {% else %}
+{% block body %}
+
+<!-- Announcement bar -->
+<div class="announce-bar">
+  Predice eventos del mundo real y opera con probabilidades en tiempo real &nbsp;·&nbsp;
+  {% if user.is_authenticated and user.perfil %}
+  <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Ver mi portafolio
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% else %}
+  <a href="{% url 'login' %}">Inicia sesión
+    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  </a>
+  {% endif %}
+</div>
+
+{% block page_content %}
+<!-- Inner page nav (dark) -->
+<div class="inner-page">
+  <nav class="inner-page-nav">
+    <div style="display:flex;align-items:center;gap:2rem;">
+      <a href="{% url 'home' %}" class="inner-nav-logo">polybuxef</a>
+      <div class="inner-nav-links">
+        <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
+        <a href="{% url 'ranking' %}" {% if '/ranking/' in request.path %}class="active"{% endif %}>Ranking</a>
+        <a href="{% url 'buscar_perfiles' %}" {% if request.path == '/perfiles/' %}class="active"{% endif %}>Perfiles</a>
+        {% if user.is_authenticated and user.perfil %}
+        <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Portafolio</a>
+        <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Coleccionables</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="inner-nav-right">
+      {% if user.is_authenticated and user.perfil %}
+      <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
+      <a href="{% url 'perfil' %}" style="font-size:0.85rem;color:#888;text-decoration:none;">{{ user.perfil.usuario.username }}</a>
+      <span class="balance-chip nav-balance">$ —</span>
+      {% else %}
       <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Iniciar sesión</a>
       <a href="{% url 'registro' %}" class="btn btn-primary btn-sm">Registrarse</a>
-    {% endif %}
+      {% endif %}
+    </div>
+  </nav>
+  <div class="page-wrap">
+    {% block content %}{% endblock %}
   </div>
-</nav>
+</div>
+{% endblock %}
 
-<main>
-  {% block content %}{% endblock %}
-</main>
+{% endblock %}
 
 <div id="toast"></div>
 
@@ -245,14 +429,242 @@
   }
 
   async function fetchBalance() {
+    if (!USUARIO_ID) return;
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
       const d = await r.json();
-      document.getElementById('nav-balance').textContent = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      const bal = `$ ${parseFloat(d.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}`;
+      document.querySelectorAll('.nav-balance').forEach(el => el.textContent = bal);
     } catch {}
   }
 
   if (USUARIO_ID) fetchBalance();
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      for (const cookie of document.cookie.split(';')) {
+        const c = cookie.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // ============================================================
+  // SISTEMA DE RULETA
+  // ============================================================
+  let _girando = false;
+  let _girosDisponibles = 0;
+  let _costoGiro = 100;
+
+  const _rarezaAngulos = {
+    'comun':      [27, 135, 243, 351],
+    'raro':       [81, 297],
+    'epico':      [189],
+    'legendario': [333]
+  };
+
+  function abrirRuleta() {
+    fetch('/ruleta/modal/')
+      .then(r => {
+        if (!r.ok) throw new Error('Error ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        _girosDisponibles = data.giros_disponibles;
+        _costoGiro = data.costo_giro;
+        _renderizarModal(data);
+        document.body.style.overflow = 'hidden';
+      })
+      .catch(err => {
+        console.error('Error al cargar ruleta:', err);
+        toast('Error al cargar la ruleta', 'err');
+      });
+  }
+
+  function _renderizarModal(data) {
+    let existing = document.getElementById('ruleta-modal-container');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'ruleta-modal-container';
+
+    const segmentos = [];
+    let angulo = 0;
+    const paletaColores = data.rarezas.map(r => r.color);
+    const segSize = 360 / 8;
+    const orden = [0, 1, 0, 2, 0, 1, 3, 0];
+    orden.forEach(idx => {
+      const color = paletaColores[idx] || '#95a5a6';
+      segmentos.push(`${color} ${angulo}deg ${angulo + segSize}deg`);
+      angulo += segSize;
+    });
+    const gradient = `conic-gradient(from 0deg, ${segmentos.join(', ')})`;
+
+    const puedeComprar = data.saldo >= data.costo_giro;
+    let accionHTML;
+    if (data.giros_disponibles > 0) {
+      accionHTML = `<button class="btn-girar" onclick="_girarRuleta()" id="btn-girar">Girar ($${data.costo_giro})</button>`;
+    } else if (puedeComprar) {
+      accionHTML = `<button class="btn-comprar" onclick="_comprarGiro()" id="btn-comprar">Comprar 1 Giro ($${data.costo_giro})</button>`;
+    } else {
+      accionHTML = `<div style="text-align:center;padding:1rem;color:var(--no);background:rgba(224,53,53,0.1);border-radius:12px;">
+        <p style="margin:0;font-weight:600;">Saldo insuficiente</p>
+        <p style="margin:.5rem 0 0;font-size:.85rem;color:#666;">Apuesta en eventos para ganar mas saldo</p>
+      </div>`;
+    }
+
+    container.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)cerrarRuleta()">
+        <div class="modal-ruleta">
+          <div class="modal-header">
+            <button class="btn-cerrar" onclick="cerrarRuleta()">×</button>
+            <h2>Ruleta de Coleccionables</h2>
+            <p>Gira y obtén coleccionables únicos</p>
+          </div>
+          <div class="modal-body">
+            <div class="info-giros">
+              <p>Saldo: <span class="saldo">$${parseFloat(data.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}</span></p>
+              <p>Giros disponibles: <span class="giros" id="giros-display">${data.giros_disponibles}</span></p>
+            </div>
+            <div class="rareza-leyenda">
+              ${data.rarezas.map(r =>
+                `<span class="rareza-item" style="--c:${r.color}">${r.emoji} ${r.label} ${r.porcentaje}%</span>`
+              ).join('')}
+            </div>
+            <div class="ruleta-container">
+              <div class="ruleta-pointer"></div>
+              <div class="ruleta-wheel" id="ruleta-wheel" style="background:${gradient}">
+                <div class="ruleta-center">?</div>
+              </div>
+            </div>
+            ${accionHTML}
+          </div>
+        </div>
+      </div>`;
+
+    document.body.appendChild(container);
+  }
+
+  function cerrarRuleta() {
+    const container = document.getElementById('ruleta-modal-container');
+    if (container) {
+      container.remove();
+      document.body.style.overflow = 'auto';
+    }
+    _girando = false;
+  }
+
+  async function _comprarGiro() {
+    const btn = document.getElementById('btn-comprar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Comprando...'; }
+
+    try {
+      const resp = await fetch('/ruleta/comprar-giro/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        _girosDisponibles = data.giros_disponibles;
+        if (btn) {
+          btn.outerHTML = `<button class="btn-girar" id="btn-girar" disabled>Girando...</button>`;
+        }
+        await _girarRuleta();
+      } else {
+        toast(data.error || 'Error al comprar giro', 'err');
+        if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al comprar giro', 'err');
+      if (btn) { btn.disabled = false; btn.textContent = `Comprar 1 Giro ($${_costoGiro})`; }
+    }
+  }
+
+  async function _girarRuleta() {
+    if (_girando) return;
+    _girando = true;
+    const btn = document.getElementById('btn-girar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Girando...'; }
+    try {
+      const resp = await fetch('/ruleta/girar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await resp.json();
+      if (data.success) {
+        const girosEl = document.getElementById('giros-display');
+        if (girosEl) girosEl.textContent = data.giros_restantes;
+        await _animarRuleta(data.coleccionable.rareza);
+        setTimeout(() => {
+          _mostrarResultado(data);
+          if (window.fetchBalance) fetchBalance();
+        }, 500);
+      } else {
+        toast(data.error || 'Error al girar', 'err');
+        _girando = false;
+        if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al girar la ruleta', 'err');
+      _girando = false;
+      if (btn) { btn.disabled = false; btn.textContent = `Girar ($${_costoGiro})`; }
+    }
+  }
+
+  async function _animarRuleta(rareza) {
+    const wheel = document.getElementById('ruleta-wheel');
+    if (!wheel) return;
+    const opciones = _rarezaAngulos[rareza] || [0];
+    const destino = opciones[Math.floor(Math.random() * opciones.length)];
+    const anguloFinal = 1440 + (360 - destino);
+    wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    wheel.style.transform = `rotate(${anguloFinal}deg)`;
+    await new Promise(r => setTimeout(r, 4200));
+  }
+
+  function _mostrarResultado(data) {
+    const c = data.coleccionable;
+    const colores = { comun:'#95a5a6', raro:'#3498db', epico:'#9b59b6', legendario:'#f39c12' };
+    const color = colores[c.rareza] || '#95a5a6';
+    const modal = document.createElement('div');
+    modal.id = 'modal-resultado';
+    modal.innerHTML = `
+      <div class="modal-overlay" style="z-index:10001;">
+        <div class="modal-ruleta" style="max-width:400px;">
+          <div class="modal-header" style="border-bottom-color:${color};">
+            <h2 style="color:${color};">${data.es_nuevo ? 'NUEVO' : 'Obtenido'}</h2>
+            <p style="color:${color};font-weight:600;text-transform:uppercase;">${c.rareza_display}</p>
+          </div>
+          <div class="modal-body" style="text-align:center;">
+            ${c.imagen_url ? `<img src="${c.imagen_url}" alt="${c.nombre}" style="width:100px;height:100px;object-fit:contain;margin:1rem 0;">` : `<div style="font-size:3rem;color:${color};margin:1rem 0;">★</div>`}
+            <h3 style="margin:1rem 0;">${c.nombre}</h3>
+            <p style="color:#666;margin-bottom:1rem;">${c.descripcion}</p>
+            ${!data.es_nuevo ? `<p style="color:var(--accent);font-weight:600;">Cantidad total: ${data.cantidad_total}</p>` : ''}
+            <button class="btn-girar" style="margin-top:1rem;" onclick="_cerrarResultado()">Continuar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function _cerrarResultado() {
+    const m = document.getElementById('modal-resultado');
+    if (m) m.remove();
+    cerrarRuleta();
+  }
 </script>
 {% block extra_js %}{% endblock %}
 </body>

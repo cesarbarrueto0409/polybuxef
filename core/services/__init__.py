@@ -8,26 +8,26 @@ from django.utils import timezone
 from core.models import HistorialPrecio, Mercado, Opcion, Resolucion, TransaccionShare, Usuario
 
 
-def obtener_usuario_actual():
-    # Mientras no exista login real en apuestas, el frontend queda fijo al usuario 1.
-    usuario, _ = Usuario.objects.get_or_create(
-        id=1,
-        defaults={
-            "nombre": "usuario_test",
-            "email": "usuario1@polybuxef.local",
-            "saldo": Decimal("0"),
-        },
-    )
-    return usuario
-
-
 def _recompensa_racha(dias):
+    """
+    Calcula la recompensa según los días de racha.
+    Máximo 5 días, cada día suma $100.
+    """
     return min(dias, 5) * 100
 
 
-def obtener_estado_racha(usuario_id):
+def obtener_estado_racha(id_usuario):
+    """
+    Obtiene el estado actual de la racha diaria de un usuario.
+    
+    Args:
+        id_usuario: ID del Usuario
+        
+    Returns:
+        dict con información de la racha actual
+    """
     hoy = timezone.localdate()
-    usuario = Usuario.objects.get(id=usuario_id)
+    usuario = Usuario.objects.get(id=id_usuario)
 
     ya_cobrada_hoy = usuario.ultima_racha == hoy
     if ya_cobrada_hoy:
@@ -44,7 +44,6 @@ def obtener_estado_racha(usuario_id):
         estado_racha = "Tu racha diaria te esta esperando"
 
     return {
-        "usuario": usuario,
         "racha_actual": racha_actual,
         "recompensa_hoy": recompensa_hoy,
         "recompensa_siguiente": _recompensa_racha(racha_actual + 1),
@@ -54,30 +53,55 @@ def obtener_estado_racha(usuario_id):
     }
 
 
-def canjear_racha_diaria(usuario_id):
+def canjear_racha_diaria(id_usuario):
+    """
+    Canjea la racha diaria del usuario y agrega saldo.
+    
+    Args:
+        id_usuario: ID del Usuario
+        
+    Returns:
+        dict con estado de racha y recompensa cobrada
+    """
     hoy = timezone.localdate()
     recompensa_cobrada = Decimal("0")
 
     with transaction.atomic():
-        usuario = Usuario.objects.select_for_update().get(id=usuario_id)
+        usuario = Usuario.objects.select_for_update().get(id=id_usuario)
 
         if usuario.ultima_racha != hoy:
+            # Determinar si continúa la racha o reinicia
             if usuario.ultima_racha == hoy - timedelta(days=1):
                 usuario.racha_actual += 1
             else:
                 usuario.racha_actual = 1
 
+            # Calcular y otorgar recompensa
             recompensa_cobrada = Decimal(_recompensa_racha(usuario.racha_actual))
             usuario.saldo += recompensa_cobrada
             usuario.ultima_racha = hoy
-            usuario.save(update_fields=["racha_actual", "saldo", "ultima_racha"])
+            usuario.save(update_fields=["racha_actual", "ultima_racha", "saldo"])
 
-    estado = obtener_estado_racha(usuario_id)
+    estado = obtener_estado_racha(id_usuario)
     estado["recompensa_cobrada"] = float(recompensa_cobrada)
     return estado
 
 
 def comprar(id_usuario, id_opcion, monto):
+    """
+    Compra shares de una opción en un mercado.
+    
+    Args:
+        id_usuario: ID del Usuario (core.models.Usuario)
+        id_opcion: ID de la Opción a comprar
+        monto: Monto a invertir
+        
+    Returns:
+        dict con shares y precio_unitario
+        
+    Raises:
+        ValueError: Si el mercado no está disponible o saldo insuficiente
+    """
     monto = Decimal(str(monto))
     with transaction.atomic():
         usuario = Usuario.objects.select_for_update().get(id=id_usuario)
@@ -86,6 +110,7 @@ def comprar(id_usuario, id_opcion, monto):
 
         if mercado.estado != "abierto" or mercado.fecha_cierre <= timezone.now():
             raise ValueError("Mercado no disponible")
+            
         if usuario.saldo < monto:
             raise ValueError("Saldo insuficiente")
 
@@ -95,6 +120,7 @@ def comprar(id_usuario, id_opcion, monto):
             .get(mercado=mercado)
         )
 
+        # Calcular shares usando fórmula AMM
         tokens_a = opcion.tokens
         tokens_b = opcion_contraria.tokens
         k = tokens_a * tokens_b
@@ -104,9 +130,11 @@ def comprar(id_usuario, id_opcion, monto):
         nuevo_precio_a = nuevo_tokens_b / (nuevo_tokens_a + nuevo_tokens_b)
         precio_unitario = monto / shares
 
+        # Descontar saldo del usuario
         usuario.saldo -= monto
         usuario.save(update_fields=["saldo"])
 
+        # Actualizar tokens y precios
         opcion.tokens = nuevo_tokens_a
         opcion.precio = nuevo_precio_a
         opcion.save(update_fields=["tokens", "precio"])
@@ -115,6 +143,7 @@ def comprar(id_usuario, id_opcion, monto):
         opcion_contraria.precio = 1 - nuevo_precio_a
         opcion_contraria.save(update_fields=["tokens", "precio"])
 
+        # Registrar transacción
         TransaccionShare.objects.create(
             usuario=usuario,
             opcion=opcion,
@@ -123,9 +152,12 @@ def comprar(id_usuario, id_opcion, monto):
             monto=monto,
             precio_unitario=precio_unitario,
         )
+        
+        # Guardar historial de precios
         HistorialPrecio.objects.create(opcion=opcion, precio=nuevo_precio_a)
         HistorialPrecio.objects.create(opcion=opcion_contraria, precio=1 - nuevo_precio_a)
 
+        # Actualizar liquidez del mercado
         mercado.liquidez_total += monto
         mercado.save(update_fields=["liquidez_total"])
 
@@ -133,6 +165,20 @@ def comprar(id_usuario, id_opcion, monto):
 
 
 def vender(id_usuario, id_opcion, shares):
+    """
+    Vende shares de una opción en un mercado.
+    
+    Args:
+        id_usuario: ID del Usuario
+        id_opcion: ID de la Opción a vender
+        shares: Cantidad de shares a vender
+        
+    Returns:
+        dict con monto y precio_unitario
+        
+    Raises:
+        ValueError: Si el mercado no está disponible o shares insuficientes
+    """
     shares = Decimal(str(shares))
     with transaction.atomic():
         usuario = Usuario.objects.select_for_update().get(id=id_usuario)
@@ -142,15 +188,14 @@ def vender(id_usuario, id_opcion, shares):
         if mercado.estado != "abierto" or mercado.fecha_cierre <= timezone.now():
             raise ValueError("Mercado no disponible")
 
+        # Calcular shares disponibles
         compras = (
             TransaccionShare.objects.filter(usuario=usuario, opcion=opcion, tipo="compra")
-            .aggregate(t=Sum("shares"))["t"]
-            or Decimal(0)
+            .aggregate(t=Sum("shares"))["t"] or Decimal(0)
         )
         ventas = (
             TransaccionShare.objects.filter(usuario=usuario, opcion=opcion, tipo="venta")
-            .aggregate(t=Sum("shares"))["t"]
-            or Decimal(0)
+            .aggregate(t=Sum("shares"))["t"] or Decimal(0)
         )
         shares_disponibles = compras - ventas
 
@@ -163,6 +208,7 @@ def vender(id_usuario, id_opcion, shares):
             .get(mercado=mercado)
         )
 
+        # Calcular monto usando fórmula AMM
         tokens_a = opcion.tokens
         tokens_b = opcion_contraria.tokens
         k = tokens_a * tokens_b
@@ -172,6 +218,7 @@ def vender(id_usuario, id_opcion, shares):
         nuevo_precio_a = nuevo_tokens_b / (nuevo_tokens_a + nuevo_tokens_b)
         precio_unitario = monto / shares
 
+        # Actualizar tokens y precios
         opcion.tokens = nuevo_tokens_a
         opcion.precio = nuevo_precio_a
         opcion.save(update_fields=["tokens", "precio"])
@@ -180,9 +227,11 @@ def vender(id_usuario, id_opcion, shares):
         opcion_contraria.precio = 1 - nuevo_precio_a
         opcion_contraria.save(update_fields=["tokens", "precio"])
 
+        # Agregar saldo al usuario
         usuario.saldo += monto
         usuario.save(update_fields=["saldo"])
 
+        # Registrar transacción
         TransaccionShare.objects.create(
             usuario=usuario,
             opcion=opcion,
@@ -191,9 +240,12 @@ def vender(id_usuario, id_opcion, shares):
             monto=monto,
             precio_unitario=precio_unitario,
         )
+        
+        # Guardar historial de precios
         HistorialPrecio.objects.create(opcion=opcion, precio=nuevo_precio_a)
         HistorialPrecio.objects.create(opcion=opcion_contraria, precio=1 - nuevo_precio_a)
 
+        # Actualizar liquidez del mercado
         mercado.liquidez_total -= monto
         mercado.save(update_fields=["liquidez_total"])
 
@@ -201,6 +253,19 @@ def vender(id_usuario, id_opcion, shares):
 
 
 def resolver_mercado(mercado_id, opcion_ganadora_id):
+    """
+    Resuelve un mercado marcando la opción ganadora.
+    
+    Args:
+        mercado_id: ID del Mercado
+        opcion_ganadora_id: ID de la Opción ganadora
+        
+    Returns:
+        dict con mercado_id y opcion_ganadora
+        
+    Raises:
+        ValueError: Si el mercado ya fue resuelto o cancelado
+    """
     with transaction.atomic():
         mercado = Mercado.objects.select_for_update().get(id=mercado_id)
         if mercado.estado == "resuelto":
@@ -210,19 +275,35 @@ def resolver_mercado(mercado_id, opcion_ganadora_id):
 
         opcion_ganadora = Opcion.objects.get(id=opcion_ganadora_id, mercado=mercado)
 
+        # Marcar opción ganadora
         Opcion.objects.filter(mercado=mercado).update(es_ganadora=False)
         opcion_ganadora.es_ganadora = True
         opcion_ganadora.save(update_fields=["es_ganadora"])
 
+        # Cambiar estado del mercado
         mercado.estado = "resuelto"
         mercado.save(update_fields=["estado"])
 
+        # Crear registro de resolución
         Resolucion.objects.create(mercado=mercado, opcion_ganadora=opcion_ganadora)
 
         return {"mercado_id": mercado.id, "opcion_ganadora": opcion_ganadora.nombre}
 
 
 def redimir(id_usuario, id_opcion):
+    """
+    Redime shares ganadores de una opción resuelta.
+    
+    Args:
+        id_usuario: ID del Usuario
+        id_opcion: ID de la Opción ganadora
+        
+    Returns:
+        dict con shares y monto redimido
+        
+    Raises:
+        ValueError: Si la opción no es ganadora o no hay shares para redimir
+    """
     with transaction.atomic():
         usuario = Usuario.objects.select_for_update().get(id=id_usuario)
         opcion = Opcion.objects.select_for_update().get(id=id_opcion)
@@ -230,30 +311,32 @@ def redimir(id_usuario, id_opcion):
         if opcion.es_ganadora is not True:
             raise ValueError("Esta opción no es ganadora")
 
+        # Calcular shares netos (compras - ventas - redenciones)
         compras = (
             TransaccionShare.objects.filter(usuario=usuario, opcion=opcion, tipo="compra")
-            .aggregate(t=Sum("shares"))["t"]
-            or Decimal(0)
+            .aggregate(t=Sum("shares"))["t"] or Decimal(0)
         )
         ventas = (
             TransaccionShare.objects.filter(usuario=usuario, opcion=opcion, tipo="venta")
-            .aggregate(t=Sum("shares"))["t"]
-            or Decimal(0)
+            .aggregate(t=Sum("shares"))["t"] or Decimal(0)
         )
         redenciones = (
             TransaccionShare.objects.filter(usuario=usuario, opcion=opcion, tipo="redencion")
-            .aggregate(t=Sum("shares"))["t"]
-            or Decimal(0)
+            .aggregate(t=Sum("shares"))["t"] or Decimal(0)
         )
 
         shares_netos = compras - ventas - redenciones
         if shares_netos <= 0:
             raise ValueError("No tienes shares ganadores pendientes de redimir")
 
+        # 1 share ganador = 1 unidad de saldo
         monto = shares_netos
+        
+        # Agregar saldo al usuario
         usuario.saldo += monto
         usuario.save(update_fields=["saldo"])
 
+        # Registrar transacción de redención
         TransaccionShare.objects.create(
             usuario=usuario,
             opcion=opcion,
