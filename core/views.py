@@ -320,7 +320,6 @@ def vender_view(request):
 
 @csrf_exempt
 @require_POST
-@login_required
 def resolver_view(request, mercado_id):
     if not request.user.is_staff:
         return JsonResponse({'error': 'No tienes permiso para resolver mercados.'}, status=403)
