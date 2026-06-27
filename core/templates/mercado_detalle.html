@@ -555,7 +555,7 @@
       document.getElementById('monto-input')?.addEventListener('input', updatePreview);
     }
 
-    if (m.estado === 'abierto') {
+    if (m.estado === 'abierto' && IS_ADMIN)  {
       document.getElementById('resolver-wrap').innerHTML = `
         <div class="resolver-card">
           <div class="resolver-title">Resolver mercado</div>
