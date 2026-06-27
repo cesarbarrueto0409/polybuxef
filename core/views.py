@@ -65,8 +65,11 @@ def home(request):
 
 
 def mercado_detalle(request, mercado_id):
-    return render(request, 'mercado_detalle.html', {'mercado_id': mercado_id})
-
+    es_admin = request.user.is_authenticated and request.user.is_staff
+    return render(request, 'mercado_detalle.html', {
+        'mercado_id': mercado_id,
+        'es_admin': es_admin,
+    })
 
 def portafolio_page(request, id_usuario):
     """
