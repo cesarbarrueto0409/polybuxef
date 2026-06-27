@@ -65,8 +65,11 @@ def home(request):
 
 
 def mercado_detalle(request, mercado_id):
-    return render(request, 'mercado_detalle.html', {'mercado_id': mercado_id})
-
+    es_admin = request.user.is_authenticated and request.user.is_staff
+    return render(request, 'mercado_detalle.html', {
+        'mercado_id': mercado_id,
+        'es_admin': es_admin,
+    })
 
 def portafolio_page(request, id_usuario):
     """
@@ -318,6 +321,8 @@ def vender_view(request):
 @csrf_exempt
 @require_POST
 def resolver_view(request, mercado_id):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'No tienes permiso para resolver mercados.'}, status=403)
     try:
         body = json.loads(request.body)
         opcion_ganadora_id = int(body['opcion_ganadora_id'])
