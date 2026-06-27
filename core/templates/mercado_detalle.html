@@ -257,6 +257,7 @@
 <script>
   const MERCADO_ID = {{ mercado_id }};
   const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
+  const IS_ADMIN = {% if es_admin %}true{% else %}false{% endif %};
   let mercadoData = null;
   let selectedOpcionId = null;
   let mode = 'comprar';
