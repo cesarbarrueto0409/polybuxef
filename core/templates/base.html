@@ -428,7 +428,7 @@
     window._toastTimer = setTimeout(() => el.className = '', 3000);
   }
 
-  async function fetchBalance() {
+  async function obtenerSaldo() {
     if (!USUARIO_ID) return;
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
@@ -438,7 +438,7 @@
     } catch {}
   }
 
-  if (USUARIO_ID) fetchBalance();
+  if (USUARIO_ID) obtenerSaldo();
 
   function getCookie(name) {
     let cookieValue = null;
@@ -609,7 +609,7 @@
         await _animarRuleta(data.coleccionable.rareza);
         setTimeout(() => {
           _mostrarResultado(data);
-          if (window.fetchBalance) fetchBalance();
+          if (window.obtenerSaldo) obtenerSaldo();
         }, 500);
       } else {
         toast(data.error || 'Error al girar', 'err');

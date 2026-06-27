@@ -287,7 +287,7 @@
   }
 
   /* Escapa caracteres HTML para evitar XSS al insertar datos de la DB */
-  function escHtml(str) {
+  function escaparHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -335,10 +335,10 @@
             </td>
             <td>
               <div class="user-nombre">
-                ${escHtml(u.nombre)}
+                ${escaparHtml(u.nombre)}
                 ${esMio ? '<span style="font-size:0.7rem;color:#00a87a;font-weight:600;margin-left:0.35rem;">(tú)</span>' : ''}
               </div>
-              <div class="user-username">@${escHtml(u.username)}</div>
+              <div class="user-username">@${escaparHtml(u.username)}</div>
             </td>
             <td class="col-saldo">
               <span class="saldo-val">$ ${saldoFmt}</span>
@@ -362,7 +362,7 @@
   }
 
   /* Actualiza saldo en la navbar */
-  async function fetchBalance() {
+  async function obtenerSaldo() {
     if (!USUARIO_ID) return;
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
@@ -532,7 +532,7 @@
         await _animarRuleta(data.coleccionable.rareza);
         setTimeout(() => {
           _mostrarResultado(data);
-          if (window.fetchBalance) fetchBalance();
+          if (window.obtenerSaldo) obtenerSaldo();
         }, 500);
       } else {
         toast(data.error || 'Error al girar', 'err');
@@ -590,7 +590,7 @@
   }
 
   /* Inicialización */
-  fetchBalance();
+  obtenerSaldo();
   cargarRanking();
 </script>
 
