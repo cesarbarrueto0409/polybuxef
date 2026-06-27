@@ -434,8 +434,8 @@
     </div>
 
     <div class="tab-nav">
-      <button class="tab-nav-btn active" onclick="showTab('posiciones',this)">Posiciones</button>
-      <button class="tab-nav-btn" onclick="showTab('historial',this)">Historial</button>
+      <button class="tab-nav-btn active" onclick="mostrarPestana('posiciones',this)">Posiciones</button>
+      <button class="tab-nav-btn" onclick="mostrarPestana('historial',this)">Historial</button>
     </div>
 
     <div id="tab-posiciones"><p class="empty-msg">Cargando...</p></div>
@@ -471,7 +471,7 @@
     return cookieValue;
   }
 
-  async function fetchBalance() {
+  async function obtenerSaldo() {
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
       const d = await r.json();
@@ -635,7 +635,7 @@
         await _animarRuleta(data.coleccionable.rareza);
         setTimeout(() => {
           _mostrarResultado(data);
-          if (window.fetchBalance) fetchBalance();
+          if (window.obtenerSaldo) obtenerSaldo();
         }, 500);
       } else {
         toast(data.error || 'Error al girar', 'err');
@@ -692,7 +692,7 @@
     cerrarRuleta();
   }
 
-  function showTab(name, btn) {
+  function mostrarPestana(name, btn) {
     document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-posiciones').style.display = name === 'posiciones' ? '' : 'none';
@@ -700,7 +700,7 @@
     if (name === 'historial') loadHistorial();
   }
 
-  async function loadPortfolio() {
+  async function cargarPortafolio() {
     const el = document.getElementById('tab-posiciones');
     try {
       const [rPort, rUser] = await Promise.all([
@@ -775,8 +775,8 @@
     const d = await r.json();
     if (d.ok) {
       toast(`Redimiste $${parseFloat(d.monto).toFixed(2)} 🎉`, 'ok');
-      fetchBalance();
-      loadPortfolio();
+      obtenerSaldo();
+      cargarPortafolio();
     } else {
       toast(d.error || 'Error', 'err');
       btn.disabled = false;
@@ -832,8 +832,8 @@
     }
   }
 
-  fetchBalance();
-  loadPortfolio();
+  obtenerSaldo();
+  cargarPortafolio();
 
   // Floating nav on scroll
   const nav = document.querySelector('.port-nav');

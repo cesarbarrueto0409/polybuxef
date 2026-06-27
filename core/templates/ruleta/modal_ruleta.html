@@ -330,7 +330,7 @@ async function comprarGiro() {
       girosDisponibles = data.giros_disponibles;
       cerrarRuleta();
       setTimeout(() => abrirRuleta(), 300);
-      if (window.fetchBalance) fetchBalance();
+      if (window.obtenerSaldo) obtenerSaldo();
     } else {
       console.error('[DEBUG] Error en respuesta:', data.error);
       toast(data.error || 'Error al comprar giro', 'err');
@@ -381,7 +381,7 @@ async function girarRuleta() {
       
       setTimeout(() => {
         mostrarResultado(data);
-        if (window.fetchBalance) fetchBalance();
+        if (window.obtenerSaldo) obtenerSaldo();
       }, 500);
     } else {
       toast(data.error || 'Error al girar', 'err');

@@ -173,7 +173,7 @@
     return cookieValue;
   }
 
-  async function fetchBalance() {
+  async function obtenerSaldo() {
     try {
       const r = await fetch(`/api/usuario/${USUARIO_ID}/`);
       const d = await r.json();
@@ -337,7 +337,7 @@
         await _animarRuleta(data.coleccionable.rareza);
         setTimeout(() => {
           _mostrarResultado(data);
-          if (window.fetchBalance) fetchBalance();
+          if (window.obtenerSaldo) obtenerSaldo();
         }, 500);
       } else {
         toast(data.error || 'Error al girar', 'err');
@@ -397,7 +397,7 @@
   const nav = document.querySelector('.perfil-nav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60), {passive:true});
 
-  fetchBalance();
+  obtenerSaldo();
 </script>
 
 {% endblock %}

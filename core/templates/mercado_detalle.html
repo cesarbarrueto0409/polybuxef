@@ -257,7 +257,7 @@
 <script>
   const MERCADO_ID = {{ mercado_id }};
   const USUARIO_ID = {% if user.is_authenticated and user.perfil %}{{ user.perfil.usuario.id }}{% else %}null{% endif %};
-  const IS_ADMIN = {% if es_admin %}true{% else %}false{% endif %};
+  const ES_ADMIN = {% if es_admin %}true{% else %}false{% endif %};
   let mercadoData = null;
   let selectedOpcionId = null;
   let mode = 'comprar';
@@ -284,7 +284,7 @@
     return cookieValue;
   }
 
-  async function fetchBalance() {
+  async function obtenerSaldo() {
     if (!USUARIO_ID) return;
     try {
       const d = await (await fetch(`/api/usuario/${USUARIO_ID}/`)).json();
@@ -448,7 +448,7 @@
         await _animarRuleta(data.coleccionable.rareza);
         setTimeout(() => {
           _mostrarResultado(data);
-          if (window.fetchBalance) fetchBalance();
+          if (window.obtenerSaldo) obtenerSaldo();
         }, 500);
       } else {
         toast(data.error || 'Error al girar', 'err');
@@ -552,10 +552,10 @@
     if (m.estado === 'abierto') {
       selectedOpcionId = m.opciones[0]?.id;
       renderOpciones();
-      document.getElementById('monto-input')?.addEventListener('input', updatePreview);
+      document.getElementById('monto-input')?.addEventListener('input', actualizarPrevista);
     }
 
-    if (m.estado === 'abierto' && IS_ADMIN)  {
+    if (m.estado === 'abierto' && ES_ADMIN)  {
       document.getElementById('resolver-wrap').innerHTML = `
         <div class="resolver-card">
           <div class="resolver-title">Resolver mercado</div>
@@ -570,8 +570,8 @@
       <div class="trade-panel-title">Operar</div>
       <div id="opciones-selector" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem;"></div>
       <div class="tab-row">
-        <button class="tab-pill active" onclick="setMode('comprar',this)">Comprar</button>
-        <button class="tab-pill" onclick="setMode('vender',this)">Vender</button>
+        <button class="tab-pill active" onclick="establecerModo('comprar',this)">Comprar</button>
+        <button class="tab-pill" onclick="establecerModo('vender',this)">Vender</button>
       </div>
       <div id="panel-comprar">
         <label class="trade-label">Monto a invertir ($)</label>
@@ -625,7 +625,7 @@
     selectedOpcionId = opcionId;
     renderOpciones();
     loadMisShares(opcionId);
-    updatePreview();
+    actualizarPrevista();
   }
 
   function renderResuelto(ganadora) {
@@ -642,7 +642,7 @@
   }
 
 
-  function setMode(m, btn) {
+  function establecerModo(m, btn) {
     mode = m;
     document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -651,7 +651,7 @@
     if (m==='vender' && selectedOpcionId) loadMisShares(selectedOpcionId);
   }
 
-  function updatePreview() {
+  function actualizarPrevista() {
     const monto = parseFloat(document.getElementById('monto-input')?.value);
     const box = document.getElementById('preview-box');
     if (!box) return;
@@ -682,7 +682,7 @@
     if (!selectedOpcionId) { toast('Selecciona una opción en la tabla','err'); return; }
     const d = await (await fetch('/comprar/',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({id_usuario:USUARIO_ID,id_opcion:selectedOpcionId,monto})})).json();
-    if (d.ok) { toast(`Compraste ${parseFloat(d.shares).toFixed(4)} shares`,'ok'); fetchBalance(); loadMercado(); }
+    if (d.ok) { toast(`Compraste ${parseFloat(d.shares).toFixed(4)} shares`,'ok'); obtenerSaldo(); loadMercado(); }
     else toast(d.error||'Error','err');
   }
 
@@ -693,7 +693,7 @@
     if (!selectedOpcionId) { toast('Selecciona una opción en la tabla','err'); return; }
     const d = await (await fetch('/vender/',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({id_usuario:USUARIO_ID,id_opcion:selectedOpcionId,shares})})).json();
-    if (d.ok) { toast(`Vendiste por $${parseFloat(d.monto).toFixed(2)}`,'ok'); fetchBalance(); loadMercado(); }
+    if (d.ok) { toast(`Vendiste por $${parseFloat(d.monto).toFixed(2)}`,'ok'); obtenerSaldo(); loadMercado(); }
     else toast(d.error||'Error','err');
   }
 
@@ -708,13 +708,13 @@
 
   const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-  function fmtTick(dateStr) {
+  function formatearEje(dateStr) {
     const d = new Date(dateStr);
     const h = d.getHours(), ampm = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
     return `${h12} ${ampm}`;
   }
 
-  function fmtTooltip(dateStr) {
+  function formatearTooltip(dateStr) {
     const d = new Date(dateStr);
     const h = d.getHours(), min = d.getMinutes().toString().padStart(2,'0');
     const ampm = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
@@ -756,7 +756,7 @@
 
     const labelAnim = {};
 
-    function resolveCollisions(items, minGap) {
+    function resolverColisiones(items, minGap) {
       if (items.length < 2) return items;
       const arr = items.map(x => ({ ...x }));
       for (let pass = 0; pass < 30; pass++) {
@@ -809,7 +809,7 @@
             ctx.font = '600 11px Manrope, sans-serif';
             ctx.fillStyle = '#555';
             ctx.textAlign = 'left';
-            ctx.fillText(fmtTooltip(dateStr), hoverX + 8, chartArea.top + 14);
+            ctx.fillText(formatearTooltip(dateStr), hoverX + 8, chartArea.top + 14);
             ctx.restore();
           }
         }
@@ -832,7 +832,7 @@
         });
 
         // Resolve collisions on natural positions
-        const resolved = resolveCollisions(
+        const resolved = resolverColisiones(
           targets.map(t => ({ ...t, y: t.naturalY })), 46
         );
 
@@ -889,7 +889,7 @@
               color: '#bbb',
               maxTicksLimit: 7,
               maxRotation: 0,
-              callback: (val, idx) => fmtTick(allTimestamps[idx] || val),
+              callback: (val, idx) => formatearEje(allTimestamps[idx] || val),
             },
             grid: { color: '#f0eeff' },
             border: { display: false },
@@ -912,7 +912,7 @@
   const nav = document.querySelector('.mkt-nav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60), {passive:true});
 
-  fetchBalance();
+  obtenerSaldo();
   loadMercado();
 </script>
 
