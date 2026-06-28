@@ -135,19 +135,22 @@
   .hero-nav-right a:hover { opacity: 1; }
 
   .btn-nav-cta {
-    background: #fff;
-    color: #000;
+    background: #6c5ce7;
+    color: #fff;
     padding: 0.5rem 1.4rem;
     border-radius: 9999px;
     font-size: 0.78rem;
     font-weight: 700;
     text-decoration: none;
-    transition: background 0.15s;
+    transition: all 0.15s;
     border: none;
     cursor: pointer;
   }
 
-  .btn-nav-cta:hover { background: #e5e5e5; }
+  .btn-nav-cta:hover { 
+    background: #5a4dc7;
+    transform: translateY(-1px);
+  }
 
   /* ── HERO MAIN CONTENT (pushed to bottom) ── */
   .hero-main {
@@ -829,7 +832,6 @@
           <div class="modal-body">
             <div class="info-giros">
               <p>Saldo: <span class="saldo">$${parseFloat(data.saldo).toLocaleString('es-CL', {minimumFractionDigits: 2})}</span></p>
-              <p>Giros disponibles: <span class="giros" id="giros-display">${data.giros_disponibles}</span></p>
             </div>
             <div class="rareza-leyenda">
               ${data.rarezas.map(r =>
