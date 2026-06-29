@@ -206,10 +206,10 @@
     <div class="rank-nav-left">
       <a href="{% url 'home' %}">Mercados</a>
       <a href="{% url 'ranking' %}" class="active">Ranking</a>
-      {% if user.is_authenticated and user.perfil %}
+      <a href="{% url 'buscar_perfiles' %}">Perfiles</a>
       <a href="{% url 'portafolio_page' user.perfil.usuario.id %}">Portafolio</a>
       <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
-      {% endif %}
+      <a href="{% url 'proponer_mercado' %}">Proponer</a>
     </div>
     <a href="{% url 'home' %}" class="rank-nav-logo">polybuxef</a>
     <div class="rank-nav-right">
