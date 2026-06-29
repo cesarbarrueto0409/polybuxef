@@ -74,16 +74,21 @@
 
   .hero-nav.scrolled {
     top: 38px;
-    left: clamp(1rem, 18%, 320px);
-    right: clamp(1rem, 18%, 320px);
-    padding: 0.75rem 1.75rem;
-    background: rgba(255, 255, 255, 0.15);
+    left: 1rem;
+    right: 1rem;
+    padding: 0.6rem 1.5rem;
+    background: rgba(10, 10, 10, 0.75);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 9999px;
-    border: 1px solid rgba(255,255,255,0.25);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   }
+
+  .hero-nav.scrolled .hero-nav-left { gap: 1.2rem; }
+  .hero-nav.scrolled .hero-nav-left a { font-size: 0.75rem; }
+  .hero-nav.scrolled .hero-nav-logo { font-size: 1.1rem; }
+  .hero-nav.scrolled .hero-nav-right { gap: 0.9rem; }
 
   .hero-nav-spacer { height: 90px; }
 
