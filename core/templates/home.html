@@ -510,6 +510,7 @@
           {% if user.is_authenticated and user.perfil %}
           <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Portafolio</a>
           <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Coleccionables</a>
+          <a href="{% url 'proponer_mercado' %}" {% if '/proponer/' in request.path or '/mis-propuestas/' in request.path %}class="active"{% endif %}>Proponer</a>
           {% endif %}
         </div>
 
@@ -549,6 +550,7 @@
           <a href="#mercados" class="btn-hero-fill">Ver mercados</a>
           {% if user.is_authenticated and user.perfil %}
           <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" class="btn-hero-outline">Mi portafolio</a>
+          <a href="{% url 'proponer_mercado' %}" class="btn-hero-outline">Proponer mercado</a>
           {% else %}
           <a href="{% url 'registro' %}" class="btn-hero-outline">Crear cuenta</a>
           {% endif %}

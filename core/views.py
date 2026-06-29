@@ -492,29 +492,55 @@ def proponer_mercado_view(request):
     exito = False
 
     if request.method == 'POST':
+        import re
+        from django.utils import timezone as tz
+        from django.utils.dateparse import parse_datetime
+
         titulo = request.POST.get('titulo', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
         categoria_id = request.POST.get('categoria')
         fecha_cierre = request.POST.get('fecha_cierre')
 
+        titulo_regex = re.compile(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9\s¿?¡!.,\-()\'"]+$')
+
         if not titulo or not descripcion or not fecha_cierre:
             error = 'Completa todos los campos obligatorios.'
+        elif len(titulo) < 10:
+            error = 'El título debe tener al menos 10 caracteres.'
+        elif not titulo_regex.match(titulo):
+            error = 'El título contiene caracteres no permitidos.'
+        elif len(descripcion) < 20:
+            error = 'La descripción debe tener al menos 20 caracteres.'
         else:
-            categoria = None
-            if categoria_id:
-                try:
-                    categoria = Categoria.objects.get(id=categoria_id)
-                except Categoria.DoesNotExist:
-                    pass
+            fecha_dt = None
+            try:
+                fecha_dt = parse_datetime(fecha_cierre)
+                if fecha_dt is None:
+                    raise ValueError
+                if fecha_dt.tzinfo is None:
+                    fecha_dt = tz.make_aware(fecha_dt)
+                if fecha_dt <= tz.now():
+                    error = 'La fecha de cierre debe ser una fecha futura.'
+                    fecha_dt = None
+            except (ValueError, TypeError):
+                error = 'Fecha de cierre inválida.'
 
-            PropuestaMercado.objects.create(
-                usuario=perfil.usuario,
-                titulo=titulo,
-                descripcion=descripcion,
-                categoria=categoria,
-                fecha_cierre_propuesta=fecha_cierre,
-            )
-            exito = True
+            if not error:
+                categoria = None
+                if categoria_id:
+                    try:
+                        categoria = Categoria.objects.get(id=categoria_id)
+                    except Categoria.DoesNotExist:
+                        pass
+
+                PropuestaMercado.objects.create(
+                    usuario=perfil.usuario,
+                    titulo=titulo,
+                    descripcion=descripcion,
+                    categoria=categoria,
+                    fecha_cierre_propuesta=fecha_dt,
+                )
+                exito = True
 
     return render(request, 'proponer_mercado.html', {
         'categorias': categorias,
