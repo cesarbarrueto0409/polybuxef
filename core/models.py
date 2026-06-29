@@ -381,3 +381,49 @@ class HistorialRuleta(models.Model):
     
     def __str__(self):
         return f"{self.usuario.nombre} obtuvo {self.coleccionable_obtenido.nombre} el {self.fecha.strftime('%Y-%m-%d %H:%M')}"
+
+class PropuestaMercado(models.Model):
+    """
+    Propuesta de mercado enviada por un usuario normal.
+    Un admin debe aprobarla para que se convierta en un Mercado real.
+    """
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, related_name='propuestas'
+    )
+    titulo = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    categoria = models.ForeignKey(
+        Categoria, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    fecha_cierre_propuesta = models.DateTimeField(
+        help_text="Fecha en que el usuario sugiere cerrar el mercado"
+    )
+    estado = models.CharField(
+        max_length=10, choices=ESTADO_CHOICES, default='pendiente'
+    )
+    motivo_rechazo = models.TextField(
+        blank=True,
+        help_text="Razón por la que se rechazó la propuesta (opcional)"
+    )
+    mercado_creado = models.OneToOneField(
+        Mercado, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='propuesta_origen',
+        help_text="Mercado que se creó al aprobar esta propuesta"
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'propuestas_mercado'
+        ordering = ['-fecha_creacion']
+        verbose_name = 'Propuesta de Mercado'
+        verbose_name_plural = 'Propuestas de Mercado'
+
+    def __str__(self):
+        return f"[{self.get_estado_display()}] {self.titulo} — @{self.usuario.username}"

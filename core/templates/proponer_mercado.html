@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Proponer Mercado — Polybuxef{% endblock %}
+
+{% block content %}
+<div class="page-title">Proponer un Mercado</div>
+
+{% if exito %}
+<div style="background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;color:var(--yes);">
+  <strong>¡Propuesta enviada!</strong> Un administrador la revisará pronto. Puedes ver el estado en
+  <a href="{% url 'mis_propuestas' %}" style="color:var(--yes);font-weight:700;">Mis propuestas</a>.
+</div>
+{% endif %}
+
+{% if error %}
+<div style="background:rgba(224,53,53,.12);border:1px solid rgba(224,53,53,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;color:var(--no);">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="card" style="max-width:680px;">
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
+    ¿Tienes un evento que crees que merece un mercado de predicción? Proponlo aquí.
+    Un administrador lo revisará y si lo aprueba, aparecerá en la lista de mercados para que todos puedan apostar.
+  </p>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Título del mercado *</label>
+      <input
+        type="text"
+        name="titulo"
+        class="input-field"
+        placeholder="Ej: ¿Ganará el DCC al DIM en el partido del viernes?"
+        maxlength="255"
+        required
+        value="{{ request.POST.titulo }}"
+      >
+    </div>
+
+    <div class="form-group">
+      <label>Descripción *</label>
+      <textarea
+        name="descripcion"
+        class="input-field"
+        placeholder="Describe el evento, cuándo ocurre, cómo se determina el resultado"
+        rows="4"
+        required
+        style="resize:vertical;"
+      >{{ request.POST.descripcion }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Categoría (opcional)</label>
+      <select name="categoria" class="input-field">
+        <option value="">— Sin categoría —</option>
+        {% for cat in categorias %}
+        <option value="{{ cat.id }}" {% if request.POST.categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Fecha de cierre sugerida *</label>
+      <input
+        type="datetime-local"
+        name="fecha_cierre"
+        class="input-field"
+        required
+        value="{{ request.POST.fecha_cierre }}"
+      >
+      <span style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;display:block;">
+        Fecha en que propones que se cierre el mercado (cuando se conozca el resultado).
+      </span>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+      <button type="submit" class="btn btn-yes">Enviar propuesta</button>
+      <a href="{% url 'mis_propuestas' %}" class="btn btn-secondary">Mis propuestas</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

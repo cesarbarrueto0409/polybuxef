@@ -37,4 +37,8 @@ urlpatterns = [
     path('ruleta/comprar-giro/', views_ruleta.comprar_giro_view, name='comprar_giro'),
     path('ruleta/girar/', views_ruleta.girar_ruleta_view, name='girar_ruleta'),
     path('coleccionables/', views_ruleta.mis_coleccionables_view, name='mis_coleccionables'),
+
+    # Propuestas de Mercado
+    path('proponer/', views.proponer_mercado_view, name='proponer_mercado'),
+    path('mis-propuestas/', views.mis_propuestas_view, name='mis_propuestas'),
 ]

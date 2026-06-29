@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from .forms import RegistroForm
-from .models import HistorialPrecio, Mercado, Opcion, Perfil, TransaccionShare, Usuario
+from .models import Categoria, PropuestaMercado, HistorialPrecio, Mercado, Opcion, Perfil, TransaccionShare, Usuario
 from .services import (
     canjear_racha_diaria,
     comprar,
@@ -472,3 +472,71 @@ def ranking_api(request):
         for idx, u in enumerate(top_usuarios)
     ]
     return JsonResponse({'ranking': data, 'total': len(data)})
+
+
+def proponer_mercado_view(request):
+    """
+    Vista para que usuarios normales propongan un nuevo mercado.
+    GET: muestra el formulario.
+    POST: guarda la propuesta como pendiente.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    perfil = _get_perfil_usuario(request.user)
+    if not perfil:
+        return redirect('home')
+
+    categorias = Categoria.objects.all().order_by('nombre')
+    error = None
+    exito = False
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        categoria_id = request.POST.get('categoria')
+        fecha_cierre = request.POST.get('fecha_cierre')
+
+        if not titulo or not descripcion or not fecha_cierre:
+            error = 'Completa todos los campos obligatorios.'
+        else:
+            categoria = None
+            if categoria_id:
+                try:
+                    categoria = Categoria.objects.get(id=categoria_id)
+                except Categoria.DoesNotExist:
+                    pass
+
+            PropuestaMercado.objects.create(
+                usuario=perfil.usuario,
+                titulo=titulo,
+                descripcion=descripcion,
+                categoria=categoria,
+                fecha_cierre_propuesta=fecha_cierre,
+            )
+            exito = True
+
+    return render(request, 'proponer_mercado.html', {
+        'categorias': categorias,
+        'error': error,
+        'exito': exito,
+    })
+
+
+@login_required
+def mis_propuestas_view(request):
+    """
+    Vista para que el usuario vea el historial de sus propuestas.
+    """
+    perfil = _get_perfil_usuario(request.user)
+    if not perfil:
+        return redirect('home')
+
+    propuestas = PropuestaMercado.objects.filter(
+        usuario=perfil.usuario
+    ).order_by('-fecha_creacion')
+
+    return render(request, 'mis_propuestas.html', {
+        'propuestas': propuestas,
+        'usuario': perfil.usuario,
+    })

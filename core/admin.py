@@ -14,6 +14,7 @@ from core.models import (
     RuletaProbabilidad,
     ConfiguracionRuleta,
     HistorialRuleta,
+    PropuestaMercado,
 )
 
 @admin.register(Categoria)
@@ -158,3 +159,45 @@ class HistorialRuletaAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         # No permitir editar registros históricos
         return False
+
+from django.utils import timezone
+
+@admin.register(PropuestaMercado)
+class PropuestaMercadoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'titulo', 'usuario', 'categoria', 'estado', 'fecha_creacion']
+    list_filter = ['estado', 'categoria', 'fecha_creacion']
+    search_fields = ['titulo', 'descripcion', 'usuario__username', 'usuario__nombre']
+    ordering = ['-fecha_creacion']
+    readonly_fields = ['usuario', 'titulo', 'descripcion', 'categoria',
+                       'fecha_cierre_propuesta', 'fecha_creacion', 'mercado_creado']
+    fields = ['usuario', 'titulo', 'descripcion', 'categoria',
+              'fecha_cierre_propuesta', 'estado', 'motivo_rechazo',
+              'mercado_creado', 'fecha_creacion']
+    actions = ['aprobar_propuestas', 'rechazar_propuestas']
+
+    def aprobar_propuestas(self, request, queryset):
+        aprobadas = 0
+        for propuesta in queryset.filter(estado='pendiente'):
+            # Crear el Mercado real a partir de la propuesta
+            mercado = Mercado.objects.create(
+                titulo=propuesta.titulo,
+                descripcion=propuesta.descripcion,
+                categoria=propuesta.categoria,
+                estado='abierto',
+                fecha_cierre=propuesta.fecha_cierre_propuesta,
+            )
+            # Crear opciones si/no por defecto
+            Opcion.objects.create(mercado=mercado, nombre='Sí', tokens=1000, precio=0.5)
+            Opcion.objects.create(mercado=mercado, nombre='No', tokens=1000, precio=0.5)
+            # Actualizar propuesta
+            propuesta.estado = 'aprobada'
+            propuesta.mercado_creado = mercado
+            propuesta.save()
+            aprobadas += 1
+        self.message_user(request, f'{aprobadas} propuesta(s) aprobada(s) y mercado(s) creado(s).')
+    aprobar_propuestas.short_description = 'Aprobar propuestas seleccionadas'
+
+    def rechazar_propuestas(self, request, queryset):
+        rechazadas = queryset.filter(estado='pendiente').update(estado='rechazada')
+        self.message_user(request, f'{rechazadas} propuesta(s) rechazada(s).')
+    rechazar_propuestas.short_description = 'Rechazar propuestas seleccionadas'
