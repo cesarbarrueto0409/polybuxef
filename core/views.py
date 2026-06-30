@@ -439,10 +439,10 @@ def perfil_view(request, id_usuario=None):
     coleccionables = RuletaService.obtener_coleccionables_usuario(usuario.id)
     stats = RuletaService.obtener_estadisticas_usuario(usuario.id)
     rareza_meta = {
-        'legendario': {'label': 'Legendarios', 'color': '#f39c12'},
-        'epico': {'label': 'Epicos', 'color': '#9b59b6'},
-        'raro': {'label': 'Raros', 'color': '#3498db'},
-        'comun': {'label': 'Comunes', 'color': '#95a5a6'},
+        'legendario': {'label': 'Legendarios', 'color': '#f39c12', 'emoji': '🏆'},
+        'epico': {'label': 'Epicos', 'color': '#9b59b6', 'emoji': '💎'},
+        'raro': {'label': 'Raros', 'color': '#3498db', 'emoji': '⭐'},
+        'comun': {'label': 'Comunes', 'color': '#95a5a6', 'emoji': '📦'},
     }
     rarezas_perfil = []
     for rareza in ['legendario', 'epico', 'raro', 'comun']:
@@ -450,6 +450,7 @@ def perfil_view(request, id_usuario=None):
             'key': rareza,
             'label': rareza_meta[rareza]['label'],
             'color': rareza_meta[rareza]['color'],
+            'emoji': rareza_meta[rareza]['emoji'],
             'items': [item for item in coleccionables if item.coleccionable.rareza == rareza],
             'stats': stats['rareza_stats'][rareza],
         })

@@ -217,7 +217,7 @@
                 <div class="coleccionable-imagen">
                   {% if item.coleccionable.imagen_url %}
                     <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width:48px;height:48px;object-fit:contain;">
-                  {% else %}*{% endif %}
+                  {% else %}{{ rareza.emoji }}{% endif %}
                 </div>
                 <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
                 <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
