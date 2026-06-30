@@ -425,12 +425,15 @@ def perfil_view(request, id_usuario=None):
     if not perfil_actual:
         return JsonResponse({'error': 'Perfil no encontrado'}, status=404)
 
+    perfil_visitado = None
     if id_usuario is None:
+        perfil_visitado = perfil_actual
         usuario = perfil_actual.usuario
     else:
         try:
-            usuario = Usuario.objects.get(id=id_usuario)
-        except Usuario.DoesNotExist:
+            perfil_visitado = Perfil.objects.select_related('user', 'usuario').get(usuario_id=id_usuario)
+            usuario = perfil_visitado.usuario
+        except Perfil.DoesNotExist:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
     coleccionables = RuletaService.obtener_coleccionables_usuario(usuario.id)
@@ -453,6 +456,7 @@ def perfil_view(request, id_usuario=None):
 
     return render(request, 'perfil.html', {
         'usuario': usuario,
+        'usuario_username': usuario.username or perfil_visitado.user.username,
         'usuario_nav_id': perfil_actual.usuario.id,
         'es_perfil_propio': usuario.id == perfil_actual.usuario.id,
         'rarezas_perfil': rarezas_perfil,
