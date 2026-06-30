@@ -3,6 +3,23 @@
 
 {% block extra_head %}
 <style>
+  body { background: #fff; color: #000; }
+  .inner-page { background: #fff; color: #000; }
+  .inner-page-nav { background: #fff; border-bottom: 1px solid #eee; }
+  .inner-nav-logo { color: #000; }
+  .inner-nav-links a { color: #888; }
+  .inner-nav-links a:hover,
+  .inner-nav-links a.active { color: #000; }
+  .page-title { color: #000; }
+  .card { background: #fff; border-color: #e8e3ff; color: #000; }
+  .card:hover { border-color: #cfc7ff; }
+  .input-field { background: #fff; border-color: #ddd8f8; color: #000; }
+  .input-field:focus { border-color: #7c6ff7; }
+  label { color: #555; }
+  .btn-primary { background: #000; color: #fff; }
+  .btn-secondary { background: #f7f5ff; color: #000; border: 1px solid #ddd8f8; }
+  .balance-chip { background: #fff; border-color: #ddd8f8; }
+
   .profiles-search-form {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -29,7 +46,7 @@
         class="input-field"
         type="search"
         value="{{ query }}"
-        placeholder="Ej: gabriel"
+        placeholder=""
         autocomplete="off"
       >
     </div>
@@ -37,26 +54,28 @@
   </form>
 
   <div style="display:grid; gap:.9rem;">
-    {% for perfil in perfiles %}
-      <div class="card" style="display:flex; justify-content:space-between; gap:1rem; align-items:center;">
+    {% if query %}
+      {% for perfil in perfiles %}
+      <a href="{% url 'perfil_publico' perfil.usuario.id %}" class="card" style="display:flex; justify-content:space-between; gap:1rem; align-items:center; text-decoration:none;">
         <div>
           <p style="font-size:1.05rem; font-weight:700; margin-bottom:.25rem;">{{ perfil.usuario.nombre }}</p>
-          <p style="color:var(--muted); font-size:.9rem;">@{{ perfil.user.username }}</p>
-          <p style="color:var(--muted); font-size:.8rem; margin-top:.5rem;">
+          <p style="color:#777; font-size:.9rem;">@{{ perfil.usuario.username|default:perfil.user.username }}</p>
+          <p style="color:#999; font-size:.8rem; margin-top:.5rem;">
             Miembro desde {{ perfil.usuario.fecha_registro|date:"d M Y" }}
           </p>
         </div>
-        <span class="btn btn-secondary btn-sm" style="opacity:.65; cursor:not-allowed;">Perfil pronto</span>
-      </div>
-    {% empty %}
+        <span class="btn btn-secondary btn-sm">Ver perfil</span>
+      </a>
+      {% empty %}
       <div class="card" style="text-align:center; color:var(--muted);">
-        {% if query %}
-          No encontramos perfiles para "{{ query }}".
-        {% else %}
-          No hay perfiles disponibles todavía.
-        {% endif %}
+        No encontramos perfiles para "{{ query }}".
       </div>
-    {% endfor %}
+      {% endfor %}
+    {% else %}
+      <div class="card" style="text-align:center; color:#777;">
+        Ingresa un nombre o usuario para buscar perfiles.
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

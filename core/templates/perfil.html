@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Mi Perfil — Polybuxef{% endblock %}
+{% block title %}{% if es_perfil_propio %}Mi Perfil{% else %}Perfil de {{ usuario.nombre }}{% endif %} — Polybuxef{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -60,7 +60,7 @@
   }
 
   .perfil-content-inner {
-    max-width: 600px;
+    max-width: 980px;
     margin: 0 auto;
   }
 
@@ -86,6 +86,46 @@
   }
   .perfil-card-val { font-size: 1rem; font-weight: 700; color: #000; }
   .perfil-card-val.green { font-size: 1.4rem; color: #00a87a; }
+
+  .perfil-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+
+  .perfil-section-title {
+    font-size: 1.2rem; font-weight: 700; color: #000;
+    margin: 2.5rem 0 0.35rem;
+  }
+
+  .perfil-section-subtitle { color: #888; font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+  .perfil-progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+  .perfil-progress-track { flex: 1; height: 6px; border-radius: 3px; background: #ede9ff; overflow: hidden; }
+  .perfil-progress-fill { height: 100%; border-radius: 3px; background: #7c6ff7; }
+  .perfil-progress-pct { font-size: 0.78rem; font-weight: 700; color: #6c5ce7; white-space: nowrap; }
+
+  .rareza-section { margin-bottom: 1.75rem; }
+  .rareza-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.85rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0dcf5;
+  }
+  .rareza-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+  .rareza-title { font-size: 0.82rem; font-weight: 700; color: #000; text-transform: uppercase; letter-spacing: 0.4px; }
+  .rareza-count { margin-left: auto; font-size: 0.72rem; color: #aaa; }
+
+  .coleccionables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  .coleccionable-card {
+    background: #fff; border: 1px solid #ddd8f8; border-radius: 0.85rem;
+    padding: 1rem 0.85rem; text-align: center;
+  }
+  .coleccionable-imagen { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .coleccionable-nombre { font-size: 0.8rem; font-weight: 700; color: #000; margin-bottom: 0.25rem; }
+  .coleccionable-descripcion { font-size: 0.7rem; color: #999; line-height: 1.35; margin-bottom: 0.5rem; min-height: 1.9em; }
+  .coleccionable-cantidad { display: inline-block; font-size: 0.68rem; font-weight: 700; color: #6c5ce7; background: #f0eeff; padding: 0.18rem 0.55rem; border-radius: 20px; }
+  .coleccionable-fecha { font-size: 0.66rem; color: #bbb; margin-top: 0.4rem; }
+  .empty-state { text-align: center; padding: 1.2rem; color: #aaa; font-size: 0.8rem; background: #fff; border: 1px dashed #ddd8f8; border-radius: 0.85rem; }
 </style>
 {% endblock %}
 
@@ -99,7 +139,9 @@
       <a href="{% url 'ranking' %}">Ranking</a>
       <a href="{% url 'buscar_perfiles' %}">Perfiles</a>
       <a href="{% url 'portafolio_page' usuario.id %}">Portafolio</a>
-      <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
+      {% if es_perfil_propio %}
+        <a href="{% url 'mis_coleccionables' %}">Coleccionables</a>
+      {% endif %}
       <a href="{% url 'proponer_mercado' %}">Proponer</a>
       <a href="{% url 'mis_propuestas' %}">Mis propuestas</a>
     </div>
@@ -107,14 +149,18 @@
     <div class="perfil-nav-right">
       <button onclick="abrirRuleta()" class="btn-ruleta">Ruleta</button>
       <span class="nav-balance perfil-nav-balance">$ —</span>
-      <a href="{% url 'logout' %}" class="btn-perfil-nav">Cerrar sesión</a>
+      {% if es_perfil_propio %}
+        <a href="{% url 'logout' %}" class="btn-perfil-nav">Cerrar sesión</a>
+      {% else %}
+        <a href="{% url 'perfil' %}" class="btn-perfil-nav">Mi perfil</a>
+      {% endif %}
     </div>
   </nav>
 </div>
 
 <div class="perfil-content-wrap">
   <div class="perfil-content-inner">
-    <h1>Mi Perfil</h1>
+    <h1>{% if es_perfil_propio %}Mi Perfil{% else %}Perfil de {{ usuario.nombre }}{% endif %}</h1>
 
     <div class="perfil-grid">
       <div class="perfil-card">
@@ -128,11 +174,6 @@
       </div>
 
       <div class="perfil-card">
-        <div class="perfil-card-lbl">Email</div>
-        <div class="perfil-card-val">{{ usuario.email }}</div>
-      </div>
-
-      <div class="perfil-card">
         <div class="perfil-card-lbl">Saldo ficticio</div>
         <div class="perfil-card-val green">$ {{ usuario.saldo|floatformat:2 }}</div>
       </div>
@@ -143,16 +184,60 @@
       </div>
     </div>
 
-    <a href="{% url 'logout' %}" class="btn btn-secondary" style="margin-top:1.5rem;display:inline-block;">
-      Cerrar sesión
-    </a>
+    <div class="perfil-actions">
+      <a href="{% url 'portafolio_page' usuario.id %}" class="btn btn-secondary">Ver portafolio</a>
+      {% if es_perfil_propio %}
+        <a href="{% url 'logout' %}" class="btn btn-secondary">Cerrar sesión</a>
+      {% endif %}
+    </div>
+
+    <h2 class="perfil-section-title">Coleccionables</h2>
+    <p class="perfil-section-subtitle">
+      {{ total_coleccionables }} de {{ total_posibles }} objetos obtenidos por {{ usuario.nombre }}.
+    </p>
+
+    <div class="perfil-progress-row">
+      <div class="perfil-progress-track">
+        <div class="perfil-progress-fill" style="width: {{ porcentaje }}%;"></div>
+      </div>
+      <span class="perfil-progress-pct">{{ porcentaje|floatformat:1 }}% completado</span>
+    </div>
+
+    {% for rareza in rarezas_perfil %}
+      <div class="rareza-section">
+        <div class="rareza-header">
+          <span class="rareza-dot" style="--c:{{ rareza.color }};"></span>
+          <h3 class="rareza-title">{{ rareza.label }}</h3>
+          <span class="rareza-count">{{ rareza.stats.obtenidos }} / {{ rareza.stats.total }}</span>
+        </div>
+        {% if rareza.items %}
+          <div class="coleccionables-grid">
+            {% for item in rareza.items %}
+              <div class="coleccionable-card">
+                <div class="coleccionable-imagen">
+                  {% if item.coleccionable.imagen_url %}
+                    <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width:48px;height:48px;object-fit:contain;">
+                  {% else %}*{% endif %}
+                </div>
+                <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+                <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+                <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+                <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">Sin coleccionables {{ rareza.label|lower }} todavía.</div>
+        {% endif %}
+      </div>
+    {% endfor %}
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-  const USUARIO_ID = {{ usuario.id }};
+  const USUARIO_ID = {{ usuario_nav_id }};
 
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
