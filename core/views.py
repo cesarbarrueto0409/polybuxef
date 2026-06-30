@@ -456,7 +456,7 @@ def perfil_view(request, id_usuario=None):
 
     return render(request, 'perfil.html', {
         'usuario': usuario,
-        'usuario_username': usuario.username or perfil_visitado.user.username,
+        'usuario_username': usuario.username,
         'usuario_nav_id': perfil_actual.usuario.id,
         'es_perfil_propio': usuario.id == perfil_actual.usuario.id,
         'rarezas_perfil': rarezas_perfil,
@@ -475,8 +475,7 @@ def buscar_perfiles_view(request):
     if query:
         perfiles = Perfil.objects.select_related('user', 'usuario').filter(
             Q(usuario__nombre__icontains=query) |
-            Q(usuario__username__icontains=query) |
-            Q(user__username__icontains=query)
+            Q(usuario__username__icontains=query)
         ).order_by('usuario__nombre')
 
     return render(request, 'buscar_perfiles.html', {

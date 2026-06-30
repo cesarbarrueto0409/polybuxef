@@ -59,7 +59,7 @@
       <a href="{% url 'perfil_publico' perfil.usuario.id %}" class="card" style="display:flex; justify-content:space-between; gap:1rem; align-items:center; text-decoration:none;">
         <div>
           <p style="font-size:1.05rem; font-weight:700; margin-bottom:.25rem;">{{ perfil.usuario.nombre }}</p>
-          <p style="color:#777; font-size:.9rem;">@{{ perfil.usuario.username|default:perfil.user.username }}</p>
+          <p style="color:#777; font-size:.9rem;">@{{ perfil.usuario.username }}</p>
           <p style="color:#999; font-size:.8rem; margin-top:.5rem;">
             Miembro desde {{ perfil.usuario.fecha_registro|date:"d M Y" }}
           </p>

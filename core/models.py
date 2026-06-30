@@ -20,8 +20,6 @@ class Usuario(models.Model):
     username = models.CharField(
         max_length=50,
         unique=True,
-        null=True,
-        blank=True,
         help_text="Nombre de usuario único (ej: user.test)"
     )
     nombre = models.CharField(max_length=100)
