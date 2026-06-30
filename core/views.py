@@ -11,6 +11,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .forms import RegistroForm
 from .models import Categoria, PropuestaMercado, HistorialPrecio, Mercado, Opcion, Perfil, TransaccionShare, Usuario
+from .services.ruleta_service import RuletaService
 from .services import (
     canjear_racha_diaria,
     comprar,
@@ -416,28 +417,67 @@ def logout_view(request):
 
 
 @login_required
-def perfil_view(request):
+def perfil_view(request, id_usuario=None):
     """
-    Vista para mostrar el perfil del usuario.
+    Vista para mostrar el perfil propio o el perfil publico de otro usuario.
     """
-    perfil = _get_perfil_usuario(request.user)
-    if not perfil:
+    perfil_actual = _get_perfil_usuario(request.user)
+    if not perfil_actual:
         return JsonResponse({'error': 'Perfil no encontrado'}, status=404)
 
-    usuario = perfil.usuario
-    return render(request, 'perfil.html', {'usuario': usuario})
+    perfil_visitado = None
+    if id_usuario is None:
+        perfil_visitado = perfil_actual
+        usuario = perfil_actual.usuario
+    else:
+        try:
+            perfil_visitado = Perfil.objects.select_related('user', 'usuario').get(usuario_id=id_usuario)
+            usuario = perfil_visitado.usuario
+        except Perfil.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+
+    coleccionables = RuletaService.obtener_coleccionables_usuario(usuario.id)
+    stats = RuletaService.obtener_estadisticas_usuario(usuario.id)
+    rareza_meta = {
+        'legendario': {'label': 'Legendarios', 'color': '#f39c12', 'emoji': '🏆'},
+        'epico': {'label': 'Epicos', 'color': '#9b59b6', 'emoji': '💎'},
+        'raro': {'label': 'Raros', 'color': '#3498db', 'emoji': '⭐'},
+        'comun': {'label': 'Comunes', 'color': '#95a5a6', 'emoji': '📦'},
+    }
+    rarezas_perfil = []
+    for rareza in ['legendario', 'epico', 'raro', 'comun']:
+        rarezas_perfil.append({
+            'key': rareza,
+            'label': rareza_meta[rareza]['label'],
+            'color': rareza_meta[rareza]['color'],
+            'emoji': rareza_meta[rareza]['emoji'],
+            'items': [item for item in coleccionables if item.coleccionable.rareza == rareza],
+            'stats': stats['rareza_stats'][rareza],
+        })
+
+    return render(request, 'perfil.html', {
+        'usuario': usuario,
+        'usuario_username': usuario.username,
+        'usuario_nav_id': perfil_actual.usuario.id,
+        'es_perfil_propio': usuario.id == perfil_actual.usuario.id,
+        'rarezas_perfil': rarezas_perfil,
+        'stats': stats,
+        'total_coleccionables': stats['coleccionables_obtenidos'],
+        'total_posibles': stats['total_coleccionables'],
+        'porcentaje': stats['porcentaje_completado'],
+    })
 
 # Busca perfiles por nombre o usuario para mostrar los resultados disponibles.
 @login_required
 def buscar_perfiles_view(request):
     query = request.GET.get('q', '').strip()
-    perfiles = Perfil.objects.select_related('user', 'usuario').order_by('usuario__nombre')
+    perfiles = Perfil.objects.none()
 
     if query:
-        perfiles = perfiles.filter(
+        perfiles = Perfil.objects.select_related('user', 'usuario').filter(
             Q(usuario__nombre__icontains=query) |
-            Q(user__username__icontains=query)
-        )
+            Q(usuario__username__icontains=query)
+        ).order_by('usuario__nombre')
 
     return render(request, 'buscar_perfiles.html', {
         'query': query,

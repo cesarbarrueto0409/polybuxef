@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Mi Perfil — Polybuxef{% endblock %}
+{% block title %}{% if es_perfil_propio %}Mi Perfil{% else %}Perfil de {{ usuario.nombre }}{% endif %} — Polybuxef{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -10,40 +10,103 @@
   }
   .perfil-card-val { font-size: 1rem; font-weight: 700; color: #111; }
   .perfil-card-val.green { font-size: 1.4rem; color: var(--yes); }
+
+  .perfil-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+
+  .perfil-section-title { font-size: 1.2rem; font-weight: 700; color: #111; margin: 2.5rem 0 0.35rem; }
+  .perfil-section-subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+  .perfil-progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; max-width: 600px; }
+  .perfil-progress-track { flex: 1; height: 6px; border-radius: 3px; background: #ece8ff; overflow: hidden; }
+  .perfil-progress-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .perfil-progress-pct { font-size: 0.78rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+  .rareza-section { margin-bottom: 1.75rem; }
+  .rareza-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.85rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .rareza-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+  .rareza-title { font-size: 0.82rem; font-weight: 700; color: #111; text-transform: uppercase; letter-spacing: 0.4px; }
+  .rareza-count { margin-left: auto; font-size: 0.72rem; color: var(--muted); }
+
+  .coleccionables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+  .coleccionable-card { text-align: center; padding: 1rem 0.85rem; }
+  .coleccionable-imagen { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .coleccionable-nombre { font-size: 0.8rem; font-weight: 700; color: #111; margin-bottom: 0.25rem; }
+  .coleccionable-descripcion { font-size: 0.7rem; color: var(--muted); line-height: 1.35; margin-bottom: 0.5rem; min-height: 1.9em; }
+  .coleccionable-cantidad { display: inline-block; font-size: 0.68rem; font-weight: 700; color: var(--accent); background: #f0eeff; padding: 0.18rem 0.55rem; border-radius: 20px; }
+  .coleccionable-fecha { font-size: 0.66rem; color: var(--muted); margin-top: 0.4rem; }
+  .empty-state { text-align: center; padding: 1.2rem; color: var(--muted); font-size: 0.8rem; background: #fff; border: 1px dashed var(--border); border-radius: var(--radius); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-title">Mi Perfil</div>
+<div class="page-title">{% if es_perfil_propio %}Mi Perfil{% else %}Perfil de {{ usuario.nombre }}{% endif %}</div>
 
 <div class="perfil-grid">
   <div class="card">
     <div class="perfil-card-lbl">Nombre</div>
     <div class="perfil-card-val">{{ usuario.nombre }}</div>
   </div>
-
   <div class="card">
     <div class="perfil-card-lbl">Usuario</div>
-    <div class="perfil-card-val">{{ usuario.username }}</div>
+    <div class="perfil-card-val">{{ usuario_username }}</div>
   </div>
-
   <div class="card">
     <div class="perfil-card-lbl">Email</div>
     <div class="perfil-card-val">{{ usuario.email }}</div>
   </div>
-
   <div class="card">
     <div class="perfil-card-lbl">Saldo ficticio</div>
     <div class="perfil-card-val green">$ {{ usuario.saldo|floatformat:2 }}</div>
   </div>
-
-  <div class="card">
-    <div class="perfil-card-lbl">Miembro desde</div>
-    <div class="perfil-card-val">{{ usuario.fecha_registro|date:"d M Y" }}</div>
-  </div>
 </div>
 
-<a href="{% url 'logout' %}" class="btn btn-secondary" style="margin-top:1.5rem;display:inline-block;">
-  Cerrar sesión
-</a>
+<div class="perfil-actions">
+  <a href="{% url 'portafolio_page' usuario.id %}" class="btn btn-secondary">Ver portafolio</a>
+  {% if es_perfil_propio %}
+  <a href="{% url 'logout' %}" class="btn btn-secondary">Cerrar sesión</a>
+  {% endif %}
+</div>
+
+<h2 class="perfil-section-title">Coleccionables</h2>
+<p class="perfil-section-subtitle">{{ total_coleccionables }} de {{ total_posibles }} objetos obtenidos por {{ usuario.nombre }}.</p>
+
+<div class="perfil-progress-row">
+  <div class="perfil-progress-track">
+    <div class="perfil-progress-fill" style="width: {{ porcentaje }}%;"></div>
+  </div>
+  <span class="perfil-progress-pct">{{ porcentaje|floatformat:1 }}% completado</span>
+</div>
+
+{% for rareza in rarezas_perfil %}
+<div class="rareza-section">
+  <div class="rareza-header">
+    <span class="rareza-dot" style="--c:{{ rareza.color }};"></span>
+    <h3 class="rareza-title">{{ rareza.label }}</h3>
+    <span class="rareza-count">{{ rareza.stats.obtenidos }} / {{ rareza.stats.total }}</span>
+  </div>
+  {% if rareza.items %}
+  <div class="coleccionables-grid">
+    {% for item in rareza.items %}
+    <div class="card coleccionable-card">
+      <div class="coleccionable-imagen">
+        {% if item.coleccionable.imagen_url %}
+        <img src="{{ item.coleccionable.imagen_url }}" alt="{{ item.coleccionable.nombre }}" style="width:48px;height:48px;object-fit:contain;">
+        {% else %}{{ rareza.emoji }}{% endif %}
+      </div>
+      <div class="coleccionable-nombre">{{ item.coleccionable.nombre }}</div>
+      <div class="coleccionable-descripcion">{{ item.coleccionable.descripcion }}</div>
+      <div class="coleccionable-cantidad">x{{ item.cantidad }}</div>
+      <div class="coleccionable-fecha">Obtenido el {{ item.fecha_obtencion|date:"d/m/Y" }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">Sin coleccionables {{ rareza.label|lower }} todavía.</div>
+  {% endif %}
+</div>
+{% endfor %}
 {% endblock %}

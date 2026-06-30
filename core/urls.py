@@ -26,6 +26,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('perfil/', views.perfil_view, name='perfil'),
+    path('perfil/<int:id_usuario>/', views.perfil_view, name='perfil_publico'),
     path('perfiles/', views.buscar_perfiles_view, name='buscar_perfiles'),
 
     # Ranking
