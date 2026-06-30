@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Mis Propuestas — Polybuxef{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+  <div class="page-title" style="margin-bottom:0;">Mis Propuestas</div>
+  <a href="{% url 'proponer_mercado' %}" class="btn btn-yes btn-sm">+ Nueva propuesta</a>
+</div>
+
+{% if not propuestas %}
+<div class="card" style="text-align:center;padding:3rem 2rem;color:var(--muted);">
+  <div style="font-size:2rem;margin-bottom:0.75rem;">📋</div>
+  <p style="margin-bottom:1rem;">Todavía no has enviado ninguna propuesta.</p>
+  <a href="{% url 'proponer_mercado' %}" class="btn btn-yes btn-sm">Proponer un mercado</a>
+</div>
+{% else %}
+<div style="display:grid;gap:0.75rem;">
+  {% for p in propuestas %}
+  <div class="card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.3rem;">{{ p.titulo }}</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.6rem;">
+          Propuesto el {{ p.fecha_creacion|date:"d M Y, H:i" }}
+          {% if p.categoria %} · {{ p.categoria.nombre }}{% endif %}
+        </div>
+        <div style="font-size:0.85rem;color:var(--muted);line-height:1.5;">{{ p.descripcion|truncatechars:180 }}</div>
+        {% if p.motivo_rechazo %}
+        <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--no);background:rgba(224,53,53,.08);border:1px solid rgba(224,53,53,.2);border-radius:var(--radius-sm);padding:0.6rem 0.9rem;">
+          <strong>Motivo de rechazo:</strong> {{ p.motivo_rechazo }}
+        </div>
+        {% endif %}
+        {% if p.mercado_creado %}
+        <div style="margin-top:0.75rem;">
+          <a href="{% url 'mercado_detalle' p.mercado_creado.id %}" class="btn btn-yes btn-sm">Ver mercado →</a>
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        {% if p.estado == 'pendiente' %}
+        <span class="badge" style="background:rgba(255,180,0,.12);color:#d4a017;border:1px solid rgba(255,180,0,.25);">⏳ Pendiente</span>
+        {% elif p.estado == 'aprobada' %}
+        <span class="badge badge-open">Aprobada</span>
+        {% else %}
+        <span class="badge badge-closed">Rechazada</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

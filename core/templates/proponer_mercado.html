@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}Proponer Mercado — Polybuxef{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-title-lg {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    letter-spacing: -1px;
+  }
+  .field-hint {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+    display: block;
+  }
+  .char-counter {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 0.2rem;
+  }
+  .char-counter.warn { color: #e09000; }
+  .char-counter.over { color: var(--no); }
+  .input-field.input-error { border-color: var(--no); }
+  .field-error { font-size: 0.78rem; color: var(--no); margin-top: 0.3rem; display: block; }
+  .form-group label { font-size: 0.95rem; color: #aaa; margin-bottom: 0.4rem; }
+  .input-field { font-size: 1.05rem; padding: 0.75rem 1rem; }
+  .field-hint { font-size: 0.875rem; }
+  .char-counter { font-size: 0.875rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title-lg">Proponer un Mercado</div>
+
+{% if exito %}
+<div style="background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;color:var(--yes);">
+  <strong>¡Propuesta enviada!</strong> Un administrador la revisará pronto. Puedes ver el estado en
+  <a href="{% url 'mis_propuestas' %}" style="color:var(--yes);font-weight:700;">Mis propuestas</a>.
+</div>
+{% endif %}
+
+{% if error %}
+<div style="background:rgba(224,53,53,.12);border:1px solid rgba(224,53,53,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;color:var(--no);">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="card" style="max-width:680px;">
+  <p style="color:var(--muted);font-size:1rem;margin-bottom:1.5rem;line-height:1.6;">
+    ¿Tienes un evento que crees que merece un mercado de predicción? Proponlo aquí.
+    Un administrador lo revisará y si lo aprueba, aparecerá en la lista de mercados para que todos puedan apostar.
+  </p>
+
+  <form method="POST" id="proponer-form" novalidate>
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Título del mercado *</label>
+      <input
+        type="text"
+        id="id_titulo"
+        name="titulo"
+        class="input-field"
+        placeholder="Ej: ¿Ganará el DCC al DIM en el partido del viernes?"
+        maxlength="255"
+        required
+        value="{{ request.POST.titulo }}"
+        oninput="updateCounter('id_titulo', 'counter-titulo', 10, 255)"
+      >
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="field-hint">Mínimo 10 caracteres. Solo letras, números, espacios y signos básicos (¿?¡!.,-).</span>
+        <span class="char-counter" id="counter-titulo">0/255</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Descripción *</label>
+      <textarea
+        id="id_descripcion"
+        name="descripcion"
+        class="input-field"
+        placeholder="Describe el evento, cuándo ocurre, cómo se determina el resultado"
+        rows="4"
+        required
+        style="resize:vertical;"
+        oninput="updateCounter('id_descripcion', 'counter-desc', 20, 1000)"
+      >{{ request.POST.descripcion }}</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="field-hint">Mínimo 20 caracteres. Explica cuándo ocurre el evento y cómo se determina el resultado.</span>
+        <span class="char-counter" id="counter-desc">0/1000</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Categoría (opcional)</label>
+      <select name="categoria" class="input-field">
+        <option value="">— Sin categoría —</option>
+        {% for cat in categorias %}
+        <option value="{{ cat.id }}" {% if request.POST.categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Fecha de cierre sugerida *</label>
+      <div style="display:flex;gap:0.75rem;">
+        <div style="flex:1;">
+          <label style="font-size:0.78rem;color:var(--muted);margin-bottom:0.25rem;display:block;">Fecha</label>
+          <input
+            type="date"
+            id="id_fecha_cierre_date"
+            class="input-field fecha-picker"
+            style="color-scheme: dark;"
+          >
+        </div>
+        <div style="flex:0 0 130px;">
+          <label style="font-size:0.78rem;color:var(--muted);margin-bottom:0.25rem;display:block;">Hora</label>
+          <input
+            type="time"
+            id="id_fecha_cierre_time"
+            class="input-field fecha-picker"
+            value="12:00"
+            style="color-scheme: dark;"
+          >
+        </div>
+      </div>
+      <input type="hidden" id="id_fecha_cierre" name="fecha_cierre" value="{{ request.POST.fecha_cierre }}">
+      <span class="field-hint">
+        Fecha en que se conocerá el resultado del evento. Debe ser una fecha futura.
+      </span>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+      <button type="submit" class="btn btn-yes">Enviar propuesta</button>
+      <a href="{% url 'mis_propuestas' %}" class="btn btn-secondary">Mis propuestas</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Fecha: combinar date + time en el hidden ──
+  function sincronizarFecha() {
+    const dateVal = document.getElementById('id_fecha_cierre_date').value;
+    const timeVal = document.getElementById('id_fecha_cierre_time').value || '12:00';
+    if (dateVal) {
+      document.getElementById('id_fecha_cierre').value = `${dateVal}T${timeVal}`;
+    } else {
+      document.getElementById('id_fecha_cierre').value = '';
+    }
+  }
+
+  // Inicializar fecha mínima y rellenar si hay valor previo del POST
+  (function() {
+    const hoy = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const minDate = `${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}-${pad(hoy.getDate())}`;
+    document.getElementById('id_fecha_cierre_date').min = minDate;
+
+    // Si hay valor del POST, rellenar los dos pickers
+    const valorPrevio = "{{ request.POST.fecha_cierre }}";
+    if (valorPrevio && valorPrevio.includes('T')) {
+      const [fecha, hora] = valorPrevio.split('T');
+      document.getElementById('id_fecha_cierre_date').value = fecha;
+      document.getElementById('id_fecha_cierre_time').value = hora.slice(0, 5);
+    }
+
+    document.getElementById('id_fecha_cierre_date').addEventListener('change', sincronizarFecha);
+    document.getElementById('id_fecha_cierre_time').addEventListener('change', sincronizarFecha);
+  })();
+
+  // ── Contadores de caracteres ──
+  function updateCounter(inputId, counterId, min, max) {
+    const input = document.getElementById(inputId);
+    const counter = document.getElementById(counterId);
+    if (!input || !counter) return;
+    const len = input.value.length;
+    counter.textContent = `${len}/${max}`;
+    counter.className = 'char-counter';
+    if (len < min && len > 0) counter.classList.add('warn');
+    if (len > max) counter.classList.add('over');
+  }
+
+  function initCounters() {
+    updateCounter('id_titulo', 'counter-titulo', 10, 255);
+    updateCounter('id_descripcion', 'counter-desc', 20, 1000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCounters);
+  } else {
+    initCounters();
+  }
+
+  // ── Validación al enviar ──
+  document.getElementById('proponer-form').addEventListener('submit', function(e) {
+    sincronizarFecha();
+    let valid = true;
+
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+    const titulo = document.getElementById('id_titulo');
+    const desc = document.getElementById('id_descripcion');
+    const fechaDate = document.getElementById('id_fecha_cierre_date');
+    const fechaHidden = document.getElementById('id_fecha_cierre');
+
+    const tituloVal = titulo.value.trim();
+    const tituloRegex = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9\s¿?¡!.,\-()'\"]+$/;
+    if (tituloVal.length < 10) {
+      showFieldError(titulo, 'El título debe tener al menos 10 caracteres.');
+      valid = false;
+    } else if (!tituloRegex.test(tituloVal)) {
+      showFieldError(titulo, 'El título contiene caracteres no permitidos.');
+      valid = false;
+    }
+
+    if (desc.value.trim().length < 20) {
+      showFieldError(desc, 'La descripción debe tener al menos 20 caracteres.');
+      valid = false;
+    }
+
+    if (!fechaHidden.value) {
+      showFieldError(fechaDate, 'Selecciona una fecha de cierre.');
+      valid = false;
+    } else {
+      const fechaSeleccionada = new Date(fechaHidden.value);
+      if (fechaSeleccionada <= new Date()) {
+        showFieldError(fechaDate, 'La fecha de cierre debe ser una fecha futura.');
+        valid = false;
+      }
+    }
+
+    if (!valid) e.preventDefault();
+  });
+
+  function showFieldError(input, msg) {
+    input.classList.add('input-error');
+    const span = document.createElement('span');
+    span.className = 'field-error';
+    span.textContent = msg;
+    input.parentNode.insertBefore(span, input.nextSibling);
+  }
+</script>
+{% endblock %}
