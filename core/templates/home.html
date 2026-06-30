@@ -507,10 +507,12 @@
         <div class="hero-nav-left">
           <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Mercados</a>
           <a href="{% url 'ranking' %}" {% if '/ranking/' in request.path %}class="active"{% endif %}>Ranking</a>
+          <a href="{% url 'buscar_perfiles' %}" {% if request.path == '/perfiles/' %}class="active"{% endif %}>Perfiles</a>
           {% if user.is_authenticated and user.perfil %}
           <a href="{% url 'portafolio_page' user.perfil.usuario.id %}" {% if '/portafolio/' in request.path %}class="active"{% endif %}>Portafolio</a>
           <a href="{% url 'mis_coleccionables' %}" {% if '/coleccionables/' in request.path %}class="active"{% endif %}>Coleccionables</a>
-          <a href="{% url 'proponer_mercado' %}" {% if '/proponer/' in request.path or '/mis-propuestas/' in request.path %}class="active"{% endif %}>Proponer</a>
+          <a href="{% url 'proponer_mercado' %}" {% if request.path == '/proponer/' %}class="active"{% endif %}>Proponer</a>
+          <a href="{% url 'mis_propuestas' %}" {% if '/mis-propuestas/' in request.path %}class="active"{% endif %}>Mis propuestas</a>
           {% endif %}
         </div>
 
