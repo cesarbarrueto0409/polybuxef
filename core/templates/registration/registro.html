@@ -1,227 +1,48 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro - Polybuxef</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      background: #f5f7fa;
-      color: #1a1a2e;
-      font-family: 'Manrope', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    /* Navbar */
-    nav {
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0 2rem;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .nav-logo {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #6c5ce7;
-      text-decoration: none;
-      letter-spacing: -0.5px;
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 1rem;
-    }
-    
-    .btn {
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-    
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #1a1a2e;
-      border: 1px solid #d1d5db;
-    }
-    
-    .btn-secondary:hover {
-      background: #e5e7eb;
-    }
-    
-    .btn-primary {
-      background: #6c5ce7;
-      color: #ffffff;
-      width: 100%;
-      margin-top: 0.5rem;
-    }
-    
-    .btn-primary:hover {
-      background: #5a4dc7;
-    }
-    
-    /* Contenido principal */
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    
-    .container {
-      max-width: 440px;
-      width: 100%;
-    }
-    
-    .page-title {
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      color: #1a1a2e;
-    }
-    
-    .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-    
-    label {
-      display: block;
-      color: #4b5563;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-    }
-    
-    .input-field {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-size: 0.95rem;
-      color: #1a1a2e;
-      font-family: 'Manrope', sans-serif;
-      transition: border-color 0.15s;
-    }
-    
-    .input-field:focus {
-      outline: none;
-      border-color: #6c5ce7;
-      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
-    }
-    
-    .error-box {
-      background: #fee2e2;
-      border: 1px solid #dc2626;
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 1.2rem;
-      color: #991b1b;
-      font-size: 0.85rem;
-    }
-    
-    .error-box div {
-      margin: 0.25rem 0;
-    }
-    
-    .footer-text {
-      text-align: center;
-      margin-top: 1.5rem;
-      font-size: 0.9rem;
-      color: #6b7280;
-    }
-    
-    .footer-text a {
-      color: #6c5ce7;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    
-    .footer-text a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <nav>
-    <a href="/" class="nav-logo">polybuxef</a>
-    <div class="nav-links">
-      <a href="{% url 'login' %}" class="btn btn-secondary">Iniciar sesión</a>
-    </div>
-  </nav>
+{% extends "base.html" %}
+{% block title %}Crear cuenta — Polybuxef{% endblock %}
 
-  <main>
-    <div class="container">
-      <h1 class="page-title">Crear cuenta</h1>
+{% block content %}
+<div style="max-width:440px;margin:2rem auto 0;">
+  <h1 class="page-title" style="text-align:center;">Crear cuenta</h1>
 
-      <div class="card">
-        <form method="post" novalidate>
-          {% csrf_token %}
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
 
-          {% if form.errors %}
-          <div class="error-box">
-            {% for field in form %}{% for error in field.errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
-            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
-          </div>
-          {% endif %}
-
-          <div class="form-group">
-            <label>Nombre</label>
-            <input class="input-field" name="nombre" type="text" value="{{ form.nombre.value|default:'' }}" required>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input class="input-field" name="email" type="email" value="{{ form.email.value|default:'' }}" required>
-          </div>
-          <div class="form-group">
-            <label>Nombre de usuario</label>
-            <input class="input-field" name="username" type="text" value="{{ form.username.value|default:'' }}" required>
-          </div>
-          <div class="form-group">
-            <label>Contraseña</label>
-            <input class="input-field" name="password1" type="password" required>
-          </div>
-          <div class="form-group">
-            <label>Confirmar contraseña</label>
-            <input class="input-field" name="password2" type="password" required>
-          </div>
-          <button class="btn btn-primary" type="submit">
-            Registrarse — recibes $1.000
-          </button>
-        </form>
+      {% if form.errors %}
+      <div class="card" style="border-color:rgba(224,53,53,.3);background:rgba(224,53,53,.08);color:var(--no);font-size:0.85rem;margin-bottom:1.2rem;padding:0.8rem 1rem;">
+        {% for field in form %}{% for error in field.errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
       </div>
+      {% endif %}
 
-      <p class="footer-text">
-        ¿Ya tienes cuenta?
-        <a href="{% url 'login' %}">Inicia sesión</a>
-      </p>
-    </div>
-  </main>
-</body>
-</html>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input class="input-field" name="nombre" type="text" value="{{ form.nombre.value|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input class="input-field" name="email" type="email" value="{{ form.email.value|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Nombre de usuario</label>
+        <input class="input-field" name="username" type="text" value="{{ form.username.value|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input class="input-field" name="password1" type="password" required>
+      </div>
+      <div class="form-group">
+        <label>Confirmar contraseña</label>
+        <input class="input-field" name="password2" type="password" required>
+      </div>
+      <button class="btn btn-yes" style="width:100%;margin-top:0.5rem;" type="submit">Registrarse — recibes $1.000</button>
+    </form>
+  </div>
+
+  <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--muted);">
+    ¿Ya tienes cuenta?
+    <a href="{% url 'login' %}" style="color:var(--accent);font-weight:700;text-decoration:none;">Inicia sesión</a>
+  </p>
+</div>
+{% endblock %}

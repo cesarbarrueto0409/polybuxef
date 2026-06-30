@@ -1,207 +1,34 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iniciar sesión - Polybuxef</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      background: #f5f7fa;
-      color: #1a1a2e;
-      font-family: 'Manrope', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    /* Navbar */
-    nav {
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0 2rem;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .nav-logo {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #6c5ce7;
-      text-decoration: none;
-      letter-spacing: -0.5px;
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 1rem;
-    }
-    
-    .btn {
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-    
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #1a1a2e;
-      border: 1px solid #d1d5db;
-    }
-    
-    .btn-secondary:hover {
-      background: #e5e7eb;
-    }
-    
-    .btn-primary {
-      background: #6c5ce7;
-      color: #ffffff;
-    }
-    
-    .btn-primary:hover {
-      background: #5a4dc7;
-    }
-    
-    /* Contenido principal */
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    
-    .container {
-      max-width: 400px;
-      width: 100%;
-    }
-    
-    .page-title {
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      color: #1a1a2e;
-    }
-    
-    .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-    
-    label {
-      display: block;
-      color: #4b5563;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-    }
-    
-    .input-field {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-size: 0.95rem;
-      color: #1a1a2e;
-      font-family: 'Manrope', sans-serif;
-      transition: border-color 0.15s;
-    }
-    
-    .input-field:focus {
-      outline: none;
-      border-color: #6c5ce7;
-      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
-    }
-    
-    .error-box {
-      background: #fee2e2;
-      border: 1px solid #dc2626;
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 1.2rem;
-      color: #991b1b;
-      font-size: 0.9rem;
-    }
-    
-    .footer-text {
-      text-align: center;
-      margin-top: 1.5rem;
-      font-size: 0.9rem;
-      color: #6b7280;
-    }
-    
-    .footer-text a {
-      color: #6c5ce7;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    
-    .footer-text a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <nav>
-    <a href="/" class="nav-logo">polybuxef</a>
-    <div class="nav-links">
-      <a href="{% url 'registro' %}" class="btn btn-secondary">Registrarse</a>
-    </div>
-  </nav>
+{% extends "base.html" %}
+{% block title %}Iniciar sesión — Polybuxef{% endblock %}
 
-  <main>
-    <div class="container">
-      <h1 class="page-title">Iniciar sesión</h1>
+{% block content %}
+<div style="max-width:400px;margin:2rem auto 0;">
+  <h1 class="page-title" style="text-align:center;">Iniciar sesión</h1>
 
-      {% if error %}
-      <div class="error-box">
-        {{ error }}
+  {% if error %}
+  <div class="card" style="border-color:rgba(224,53,53,.3);background:rgba(224,53,53,.08);color:var(--no);margin-bottom:1.2rem;">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input class="input-field" id="username" name="username" type="text" required autofocus>
       </div>
-      {% endif %}
-
-      <div class="card">
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="username">Usuario</label>
-            <input class="input-field" id="username" name="username" type="text" required autofocus>
-          </div>
-          <div class="form-group">
-            <label for="password">Contraseña</label>
-            <input class="input-field" id="password" name="password" type="password" required>
-          </div>
-          <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" type="submit">
-            Entrar
-          </button>
-        </form>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input class="input-field" id="password" name="password" type="password" required>
       </div>
+      <button class="btn btn-yes" style="width:100%;margin-top:0.5rem;" type="submit">Entrar</button>
+    </form>
+  </div>
 
-      <p class="footer-text">
-        ¿No tienes cuenta?
-        <a href="{% url 'registro' %}">Regístrate</a>
-      </p>
-    </div>
-  </main>
-</body>
-</html>
+  <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--muted);">
+    ¿No tienes cuenta?
+    <a href="{% url 'registro' %}" style="color:var(--accent);font-weight:700;text-decoration:none;">Regístrate</a>
+  </p>
+</div>
+{% endblock %}
